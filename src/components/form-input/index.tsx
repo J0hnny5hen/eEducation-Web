@@ -1,7 +1,7 @@
 import React, { useRef , useState} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import { Theme, Typography, InputLabel, Input } from '@material-ui/core';
-import { UAParser } from "ua-parser-js"
+import UAParser from "ua-parser-js"
 import { isElectron } from '@/utils/platform';
 
 const parser = new UAParser()

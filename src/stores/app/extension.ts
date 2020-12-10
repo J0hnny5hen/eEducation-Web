@@ -9,6 +9,13 @@ import { MiddleRoomPropertiesChangeCause } from './middle-room';
 
 export type SetInterval = ReturnType<typeof setInterval>
 
+export enum MediaState {
+  hasVideo = 1,
+  hasAudio = 1,
+  disableVideo = 0,
+  disableAudio = 0
+}
+
 type ApplyUser = {
   userName: string
   userUuid: string
@@ -37,18 +44,18 @@ export class ExtensionStore {
 
   constructor(appStore: AppStore) {
     this.appStore = appStore
-    when(
-      () => !!this.enableCoVideo && this.timer === undefined,
-      () => {
-        this.startTimer()
-      }
-    )
-    when(
-      () => !!this.handsUpDelay,
-      () => {
-        this.resetApply()
-      }
-    )
+    // when(
+    //   () => !!this.enableCoVideo && this.timer === undefined,
+    //   () => {
+    //     this.startTimer()
+    //   }
+    // )
+    // when(
+    //   () => !!this.handsUpDelay,
+    //   () => {
+    //     this.resetApply()
+    //   }
+    // )
   }
 
   get sceneStore() {
@@ -213,7 +220,7 @@ export class ExtensionStore {
           audioSourceType: EduAudioSourceType.mic,
           streamName: '',
           streamUuid: localStream.stream.streamUuid,
-          hasVideo: localStreamData && localStreamData.stream ? localStreamData.stream.hasVideo : false,
+          hasVideo: false,
           hasAudio: true,
           userInfo: {} as EduUser
         })
@@ -252,11 +259,14 @@ export class ExtensionStore {
         userUuid,
       )
       if (this.enableCoVideo) {
-        await this.roomManager?.userService.inviteStreamBy({
-          roomUuid: this.sceneStore.roomUuid,
+        await this.appStore.middleRoomStore.batchUpdateStreamAttributes([{
           streamUuid: streamUuid,
-          userUuid: userUuid
-        })
+          userUuid: userUuid,
+          videoSourceType: EduVideoSourceType.camera,
+          audioSourceType: EduAudioSourceType.mic,
+          videoState: MediaState.disableVideo,
+          audioState: MediaState.hasAudio,
+        }])
       }
     } catch (err) {
       console.warn(err)

@@ -1,3 +1,26 @@
+.disable-pointer {
+  pointer-events: none;
+
+  .icon {
+    pointer-events: none !important;
+  }
+  
+  .icon-exit,
+  .icon-upload {
+    pointer-events: auto !important;
+  }
+
+  .board-container {
+    pointer-events: none !important;
+  }
+
+  .tools {
+    .board-tools-menu {
+      pointer-events: none !important;
+    }
+  }
+}
+
 
 .middle-class {
   .agora-video-view {

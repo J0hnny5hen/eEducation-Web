@@ -4,6 +4,7 @@
   position: relative;
   justify-content: space-between;
   .menu {
+    pointer-events: auto !important;
     max-height: 45px;
     min-height: 45px;
     flex: 1;

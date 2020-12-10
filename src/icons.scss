@@ -785,6 +785,7 @@
 }
 
 .icon-kick-off {
+  // pointer-events: auto !important;
   &::after {
     width: 100%;
     height: 100%;

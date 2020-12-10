@@ -80,9 +80,11 @@ const RoomController = observer(({children}: any) => {
   const index = roomTypes.findIndex((it: any) => path === it.path)
 
   const value = roomTypes[index].path
+
+  const noHover = middleRoomStore.canOperator
   
   return (
-    <div className={`classroom ${value}`}>
+    <div className={`classroom ${value} ${noHover ? "" : "disable-pointer"}`}>
       {uiStore.loading ? <Loading /> : null}
       <AutoplayToast />
       <DeviceDetectController />
