@@ -143,6 +143,22 @@ export class MiddleRoomStore extends SimpleInterval {
     return this.appStore.extensionStore;
   }
 
+  @computed 
+  get canOperator() {
+    if (this.teacherExists) {
+      const classStarted = this.sceneStore.classState === 1
+      if (classStarted) {
+        return true
+      }
+      return false
+    }
+    return false
+  }
+
+  @computed
+  get teacherExists(): boolean {
+    return !!this.sceneStore.userList.find((it) => it.role === 'host')
+  }
 
   @computed
   get userUuid(): string {

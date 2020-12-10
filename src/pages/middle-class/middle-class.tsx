@@ -230,7 +230,7 @@ export const MiddleClass = observer(() => {
   }
   
   return (
-    <div className="room-container">
+    <div className={`room-container ${middleRoomStore.canOperator ? "" : "disable-pointer"}`}>
       <div className="live-container">
         <div className="platform-room">
           <FirstGroupVideoMarquee />
