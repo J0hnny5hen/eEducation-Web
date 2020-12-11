@@ -151,10 +151,24 @@ interface MiddleGroupCardProps {
   }
   platform: EventHandler<any>
   addStar: EventHandler<any>
+  controlMicrophone: EventHandler<any>
 }
 
 export const MiddleGroupCard: React.FC<MiddleGroupCardProps> = observer(
-  ({group, platform, addStar}) => {
+  ({group, platform, addStar, controlMicrophone}) => {
+
+  const [isClose, setIsClose] = useState<boolean>(false)
+
+  // 0 表示麦克风处于关闭状态 1 开启
+   const controlClose = async ()=> {
+    await controlMicrophone(0)
+    setIsClose(true)
+  }
+
+  const controlOpen = async ()=> {
+    await controlMicrophone(1)
+    setIsClose(false)
+  }
   
   return (
     <div className="middle-group-card">
@@ -164,7 +178,12 @@ export const MiddleGroupCard: React.FC<MiddleGroupCardProps> = observer(
           <div className="group-stu-num">({group.members.length}人)</div>
         </div>
         <div className="icon">
-          <div className="microphone"></div>
+          {
+            isClose?
+            <div className="close-microphone" onClick={controlOpen}></div>
+            :
+            <div className="microphone" onClick={controlClose}></div>
+          }
           <div className="platform" onClick={platform}></div>
           <div className="add-star" onClick={addStar}></div>
         </div>
@@ -191,9 +210,10 @@ interface MiddleGroupingProps {
   onSave: EventHandler<any>
   onRemove: EventHandler<any>
   dataList: any[]
+  studentTotal: number
 }
 
-export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList, onRemove}) => {
+export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList, onRemove, studentTotal}) => {
   const useStyles = makeStyles((theme: Theme) =>
     createStyles({
       formControl: {
@@ -303,7 +323,7 @@ export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList,
         controlSpread === 1 && !addition?
         <div className="group-card-packup">
           <div className="text">分组</div>
-          <span className="stu-num">学生总数 15</span>
+          <span className="stu-num">学生总数 {studentTotal}</span>
           <div className="spread-group-card" onClick={reduceGroupSmall}></div>
           <div className="close-group-card" onClick={closeGroup}></div>
         </div> 
@@ -313,7 +333,7 @@ export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList,
         controlSpread === 2 && addition?
         <div className="group-card">
           <span className="text-group">分组</span>
-          <span className="text-num">学生总数 </span>
+          <span className="text-num">学生总数 {studentTotal}</span>
           <div className="btn-operation">
             {
               dragGrouping? <Button variant="contained" className="btn-reset" onClick={handleResetGroup}>重新分组</Button>

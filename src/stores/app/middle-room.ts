@@ -606,9 +606,7 @@ export class MiddleRoomStore extends SimpleInterval {
           this.roomProperties = classroom.roomProperties
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
-          const interactOutGroups = get(classroom, 'roomProperties.interactOutGroups')
-          console.log('get groups***', groups)
-          console.log('get students***', students)
+
           let userGroups: UserGroup[] = []
           if (groups) {
             Object.keys(groups).forEach(groupUuid => {
@@ -620,7 +618,6 @@ export class MiddleRoomStore extends SimpleInterval {
               }
               group.members.forEach((stuUuid: string) => {
                 let info = students[stuUuid]
-                console.log('***info.reward', info)
                 userGroup.members.push({
                   userUuid: stuUuid,
                   userName: info.userName,
@@ -632,7 +629,6 @@ export class MiddleRoomStore extends SimpleInterval {
             })
             this.userGroups = userGroups
           }
-          console.log('***userGroups', this.userGroups)
       })
       roomManager.on('room-chat-message', (evt: any) => {
         const {textMessage} = evt;
@@ -802,7 +798,7 @@ export class MiddleRoomStore extends SimpleInterval {
   }
 
   @computed
-  get groups() {
+  get allStudentStreams() {
     const allStudents: VideoMarqueeItem = {
       studentStreams: [],
     }
@@ -821,6 +817,7 @@ export class MiddleRoomStore extends SimpleInterval {
         showHover: this.roomInfo.userRole === 'teacher'
       }))
     }
+    console.log('***allStudents', allStudents)
 
     return allStudents
   }
@@ -835,7 +832,7 @@ export class MiddleRoomStore extends SimpleInterval {
   
     let g1Members: any[] = []
     let g2Members: any[] = []
-    this.groups.studentStreams.forEach((e:any) => {
+    this.allStudentStreams.studentStreams.forEach((e:any) => {
       g1MemberIds.forEach((uid: any) => {
         if(uid === e.userUuid) {
           g1Members.push(e)
@@ -853,6 +850,31 @@ export class MiddleRoomStore extends SimpleInterval {
       g1Members,
       g2Members,
     }
+  }
+
+  @action
+  // 整组关麦
+  async groupControlMicrophone (group:any, control:number) {
+    // 如果已经开麦 关麦 如果当前为关麦 即开
+    let streams:any = []
+    group.members.forEach((item:any) => {
+      let stu = {
+        userUuid: item.userUuid,
+        streamUuid: item.streamUuid,
+        streamName: item.userUuid + 'stream',
+        videoSourceType: 1,
+        audioSourceType: 1,
+        videoState: 1,
+        audioState: control,
+      }
+      streams.push(stu)        
+    })
+    await this.batchUpsertStream(streams)
+    let properties = {
+
+    }
+    let cause = {cmd:"201"} // 整组开关麦
+    await this.updateRoomBatchProperties({ properties, cause })
   }
 
   @action

@@ -106,7 +106,10 @@ export const MiddleClass = observer(() => {
           <ScreenSharing />
           {
             extensionStore.controlGrouping ?
-            <MiddleGrouping dataList={roomStudentUserList} onSave={(groups) => middleRoomStore.groupOnSave(groups)} onRemove={middleRoomStore.removeGroup} />
+            <MiddleGrouping dataList={roomStudentUserList} 
+            studentTotal={Object.keys(middleRoomStore.roomProperties.students).length}
+            onSave={(groups) => {middleRoomStore.groupOnSave(groups)}} 
+            onRemove={middleRoomStore.removeGroup} />
             : null
           }
           {
@@ -176,7 +179,9 @@ export const MiddleClass = observer(() => {
                   <MiddleGroupCard key={index} 
                     group={group}
                     platform={async () => await middleRoomStore.clickPlatform(group)} 
-                    addStar={() => middleRoomStore.addGroupStar(group)}>
+                    addStar={() => middleRoomStore.addGroupStar(group)}
+                    controlMicrophone={async (control) => {
+                      await middleRoomStore.groupControlMicrophone(group, control)}}>
                   </MiddleGroupCard>
                 ))
               }
