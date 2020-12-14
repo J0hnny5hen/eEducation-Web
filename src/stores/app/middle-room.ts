@@ -588,22 +588,22 @@ export class MiddleRoomStore extends SimpleInterval {
             }
           }
           this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
+          // 中班功能
+          this.roomProperties = classroom.roomProperties
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
-          console.log('get groups***', groups)
-          console.log('get students***', students)
+
           let userGroups: UserGroup[] = []
           if (groups) {
             Object.keys(groups).forEach(groupUuid => {
               let group = groups[groupUuid]
               let userGroup: UserGroup = {
                 groupName: group.groupName,
-                groupUuid: 'groupUuid' + groupUuid,
+                groupUuid: groupUuid,
                 members: [],
               }
               group.members.forEach((stuUuid: string) => {
                 let info = students[stuUuid]
-                console.log('***info.reward', info)
                 userGroup.members.push({
                   userUuid: stuUuid,
                   userName: info.userName,
@@ -803,7 +803,8 @@ export class MiddleRoomStore extends SimpleInterval {
         ...stream,
         showStar: true,
         showControls: false,
-        showHover: this.roomInfo.userRole === 'teacher'
+        showHover: this.roomInfo.userRole === 'teacher',
+        rewardNum: this.getUserReward(stream.userUuid)
       }))
     }
     console.log('***allStudents', allStudents)
@@ -1025,7 +1026,11 @@ export class MiddleRoomStore extends SimpleInterval {
   // ]
 
   getUserReward(userUuid: string) {
-    return this.roomStudentUserList.find((it) => it.userUuid === userUuid)
+    const user = this.roomStudentUserList.find((it) => it.userUuid === userUuid)
+    if (user) {
+      return user.reward
+    }
+    return 0
   }
 
   @action

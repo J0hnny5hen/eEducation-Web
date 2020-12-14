@@ -205,7 +205,6 @@ export class SceneStore extends SimpleInterval {
     this.microphoneLock = false
     this.cameraLock = false
     this.recordState = false
-    this.blocking = false
   }
 
   @action
@@ -316,11 +315,11 @@ export class SceneStore extends SimpleInterval {
       this._cameraRenderer = this.mediaService.cameraRenderer
       this.cameraLabel = this.mediaService.getCameraLabel()
       this._cameraId = this.cameraId
-      BizLogger.info('[demo] action in openCamera ### openCamera')
+      BizLogger.info('[demo] action in openCamera >>> openCamera')
       this.unLockCamera()
     } catch (err) {
       this.unLockCamera()
-      BizLogger.info('[demo] action in openCamera ### openCamera')
+      BizLogger.info('[demo] action in openCamera >>> openCamera')
       BizLogger.warn(err)
       throw err
     }
@@ -403,12 +402,12 @@ export class SceneStore extends SimpleInterval {
       await this.mediaService.openMicrophone({deviceId})
       this._microphoneTrack = this.mediaService.microphoneTrack
       this.microphoneLabel = this.mediaService.getMicrophoneLabel()
-      BizLogger.info('[demo] action in openMicrophone ### openMicrophone')
+      BizLogger.info('[demo] action in openMicrophone >>> openMicrophone')
       this._microphoneId = this.microphoneId
       this.unLockMicrophone()
     } catch (err) {
       this.unLockMicrophone()
-      BizLogger.info('[demo] action in openMicrophone ### openMicrophone')
+      BizLogger.info('[demo] action in openMicrophone >>> openMicrophone')
       BizLogger.warn(err)
       throw err
     }
@@ -614,9 +613,7 @@ export class SceneStore extends SimpleInterval {
   async leaveRtc() {
     try {
       this.joiningRTC = false
-      if (this.mediaService) {
-        await this.mediaService.leave()
-      }
+      await this.mediaService.leave()
       this.appStore.uiStore.addToast(t('toast.leave_rtc_channel'))
       this.appStore.reset()
     } catch (err) {
@@ -1080,7 +1077,6 @@ export class SceneStore extends SimpleInterval {
   //   }
   // }
 
-  @computed
   get teacherUuid(): string {
     const teacher = this.userList.find((it: EduUser) => it.role === EduRoleType.teacher)
     if (teacher) {
@@ -1271,22 +1267,13 @@ export class SceneStore extends SimpleInterval {
 
   @computed
   get mutedChat(): boolean {
-    if (this.classState !== undefined) {
-      return this.classState !== 1
-    }
     if (this.isMuted !== undefined) {
       return this.isMuted
     }
-//     const classroom = this.roomManager?.getClassroomInfo()
-//     if (classroom && classroom.roomStatus) {
-// <<<<<<< HEAD
-//       return !classroom.roomStatus.isStudentChatAllowed
-// =======
-//       const isAllowed: any = !classroom.roomStatus.isStudentChatAllowed
-//       const courseStarted: any = classroom.roomStatus.courseState === 1
-//       return !!(isAllowed | courseStarted)
-// ######> OurEdu
-//     }
+    const classroom = this.roomManager?.getClassroomInfo()
+    if (classroom && classroom.roomStatus) {
+      return !classroom.roomStatus.isStudentChatAllowed
+    }
     return true
   }
 
@@ -1465,11 +1452,5 @@ export class SceneStore extends SimpleInterval {
       this.appStore.uiStore.addToast(t('toast.failed_to_end_recording') + `, ${err.msg}`)
     }
   }
-  @observable
-  blocking: boolean = true
 
-  @action
-  showBlocking() {
-    this.blocking = false
-  }
 }

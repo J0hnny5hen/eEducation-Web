@@ -40,16 +40,6 @@ const GroupVideoMarquee: React.FC<StreamsProps> = observer(
 //   />
 // })
 
-const SecondGroupVideoMarquee = observer(() => {
-  const store = useMiddleRoomStore()
-  return <VideoMarquee
-    className="group second-group"
-    canHover={true}
-    mainStream={store.groups[1].mainStream}
-    othersStreams={store.groups[1].studentStreams}
-  />
-})
-
 export const MiddleClass = observer(() => {
 
   const middleRoomStore = useMiddleRoomStore()
@@ -335,7 +325,7 @@ export const MiddleClass = observer(() => {
                   <MiddleGroupCard key={index} 
                     group={group}
                     platform={async () => await middleRoomStore.clickPlatform(group)} 
-                    addStar={() => middleRoomStore.addGroupStar(group)}
+                    addStar={async () => await middleRoomStore.addGroupStar(group)}
                     controlMicrophone={async (control) => {
                       await middleRoomStore.groupControlMicrophone(group, control)}}>
                   </MiddleGroupCard>

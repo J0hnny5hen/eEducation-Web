@@ -24,22 +24,26 @@ type VideoPlayerProps = {
   showStar?: boolean
   showHover?: boolean
   showMediaBtn?: boolean
+  rewardNum?: number
   handleClickVideo?: (userUuid: string, isLocal: boolean) => void
   handleClickAudio?: (userUuid: string, isLocal: boolean) => void
 }
 
 type RewardMenuPropsType = {
   userUuid: string
+  rewardNum: number
   video: boolean
   audio: boolean
 }
 
 export const MediaMenu = observer((props: RewardMenuPropsType) => {
-  const {video, audio, userUuid} = props
+  const {video, audio, userUuid, rewardNum} = props
   const sceneStore = useSceneStore()
   const middleRoomStore = useMiddleRoomStore() 
 
-  const userReward = middleRoomStore.getUserReward(userUuid)
+  // const userReward = useMemo(() => {
+  //   return middleRoomStore.getUserReward(userUuid)
+  // } ,[middleRoomStore.getUserReward, userUuid, middleRoomStore.roomStudentUserList])
   
   const handleAudioClick = async () => {
     if (props.audio) {
@@ -59,61 +63,26 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
 
   // TODO: 需要完善，中班课场景的发送奖励
   const sendReward = useCallback(async () => {
-    userReward && await middleRoomStore.sendReward(userReward.userUuid, userReward.reward)
-  }, [userReward])
+    await middleRoomStore.sendReward(userUuid, rewardNum)
+  }, [userUuid, rewardNum])
 
   // TODO: close co-video
   const handleClose = async () =>{
     await middleRoomStore.sendClose(props.userUuid)
   }
 
-  const StartEffect = (props: any) => {
-    useTimeout(() => {
-      console.log("show effect")
-      props && props.destroy()
-    }, 2500)
-
-    return (
-      <div className="stars-effect">
-        {/* <!-- work around use timestamp solve gif only play once --> */}
-        <img src={`${starsUrl}?${Date.now()}`}></img>
-      </div>
-    )
-  }
-
-  const rewardNumber: number = +get(userReward, 'reward', 1)
-
-  const prevNumber = useRef<number>(rewardNumber)
-
-  const [rewardVisible, showReward] = useState<boolean>(false)
-
-  const onDestroy = useCallback(() => {
-    showReward(false)
-  }, [showReward])
-
-  useEffect(() => {
-    if (prevNumber.current !== rewardNumber) {
-      showReward(true)
-      prevNumber.current = rewardNumber
-    }
-  }, [prevNumber, rewardNumber, showReward])
-
   return (
-    <>
-      <div className="hover-menu">
-        {
-          userReward ? 
-          <>
-            <CustomIcon onClick={handleAudioClick} className={audio ? "icon-speaker-on" : "icon-speaker-off"} data={"audio"} />
-            <CustomIcon onClick={handleVideoClick} className={video ? "icons-camera-unmute-s" : "icons-camera-mute-s"} data={"video"} />
-            <CustomIcon onClick={handleClose} className={"icons-close-co-video"} data={"close-co-video"} />
-            <CustomIcon onClick={sendReward} className={"icon-hollow-white-star"} data={"reward"} />
-          </> : null
-        }
-      </div>
-      {rewardVisible ?
-        <StartEffect destroy={onDestroy} /> : null}
-    </>
+    <div className="hover-menu">
+      {
+        userUuid ? 
+        <>
+          <CustomIcon onClick={handleAudioClick} className={audio ? "icon-speaker-on" : "icon-speaker-off"} data={"audio"} />
+          <CustomIcon onClick={handleVideoClick} className={video ? "icons-camera-unmute-s" : "icons-camera-mute-s"} data={"video"} />
+          <CustomIcon onClick={handleClose} className={"icons-close-co-video"} data={"close-co-video"} />
+          <CustomIcon onClick={sendReward} className={"icon-hollow-white-star"} data={"reward"} />
+        </> : null
+      }
+    </div>
   )
 })
 
@@ -134,6 +103,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   showStar,
   handleClickVideo,
   handleClickAudio,
+  rewardNum,
   showHover
 }) => {
 
@@ -171,6 +141,38 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   //   return extensionStore.coVideoStudentsList.find((it) => it.userUuid === userUuid) ? true : false
   // }, [extensionStore.coVideoStudentsList])
 
+
+  const StartEffect = (props: any) => {
+    useTimeout(() => {
+      console.log("show effect")
+      props && props.destroy()
+    }, 2500)
+
+    return (
+      <div className="stars-effect">
+        {/* <!-- work around use timestamp solve gif only play once --> */}
+        <img src={`${starsUrl}?${Date.now()}`}></img>
+      </div>
+    )
+  }
+
+  const rewardNumber: number = rewardNum as number
+
+  const prevNumber = useRef<number>(rewardNumber)
+
+  const [rewardVisible, showReward] = useState<boolean>(false)
+
+  const onDestroy = useCallback(() => {
+    showReward(false)
+  }, [showReward])
+
+  useEffect(() => {
+    if (prevNumber.current !== rewardNumber) {
+      showReward(true)
+      prevNumber.current = rewardNumber
+    }
+  }, [prevNumber, rewardNumber, showReward])
+
   return (
     <div className={`${className ? className : 'agora-video-view'}`}>
       {showClose ? <div className="icon-close" onClick={handleClose}></div> : null}
@@ -179,7 +181,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           userUuid={`${userUuid}`}
           video={video}
           audio={audio}
+          rewardNum={rewardNum as number}
         /> : null}
+      {rewardVisible ?
+        <StartEffect destroy={onDestroy} /> : null}
       {
         share === true ? null : 
         <div className={role === 'teacher' ? 'teacher-placeholder' : 'student-placeholder'}>
