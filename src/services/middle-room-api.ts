@@ -129,6 +129,7 @@ export class MiddleRoomApi {
       full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/process/${this.room.uuid}`,
       method: 'PUT',
       data: {
+        type: 1,
         maxWait: 4,
         timeout: 30,
       },

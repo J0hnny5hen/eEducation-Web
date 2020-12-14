@@ -61,7 +61,8 @@ type UpdateBizStreamParams = {
   audioState: number,
   videoState: number,
   videoSourceType: number,
-  audioSourceType: number
+  audioSourceType: number,
+  generateToken: boolean
 }
 
 type DeleteBizStreamParams = {
@@ -725,6 +726,7 @@ export class AgoraEduApi {
       audioSourceType,
       videoState,
       audioState,
+      generateToken
     } = args
 
     let res = await this.fetch({
@@ -735,7 +737,8 @@ export class AgoraEduApi {
         videoSourceType,
         audioSourceType,
         videoState,
-        audioState
+        audioState,
+        generateToken
       }
     })
 
@@ -898,7 +901,8 @@ export class AgoraEduApi {
       url: `/v1/rooms/${roomUuid}/users/${userUuid}/streams/${streamUuid}`,
       method: 'PUT',
       data: {
-        videoState: 1
+        videoState: 1,
+        generateToken: false
       }
     })
     return res.data
@@ -918,7 +922,8 @@ export class AgoraEduApi {
       url: `/v1/rooms/${roomUuid}/users/${userUuid}/streams/${streamUuid}`,
       method: 'PUT',
       data: {
-        videoState: 0
+        videoState: 0,
+        generateToken: false
       }
     })
     return res.data
@@ -929,7 +934,8 @@ export class AgoraEduApi {
       url: `/v1/rooms/${roomUuid}/users/${userUuid}/streams/${streamUuid}`,
       method: 'PUT',
       data: {
-        audioState: 1
+        audioState: 1,
+        generateToken: false
       }
     })
     return res.data
@@ -940,7 +946,8 @@ export class AgoraEduApi {
       url: `/v1/rooms/${roomUuid}/users/${userUuid}/streams/${streamUuid}`,
       method: 'PUT',
       data: {
-        audioState: 0
+        audioState: 0,
+        generateToken: false
       }
     })
     return res.data

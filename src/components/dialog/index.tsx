@@ -97,7 +97,10 @@ export const RoomNavigationDialog = observer((props: any) => {
       uiStore.unblock()
       history.push('/')
     }
-  }, [roomStore.teacherRejectApply, ])
+    else if (type === 'unmuteApply') {
+      
+    }
+  }, [roomStore.teacherRejectApply, middleRoomStore])
 
   const onConfirm = useCallback(async ({type, option}: DialogMessage) => {
     if (type === 'exitRoom') {
@@ -131,9 +134,17 @@ export const RoomNavigationDialog = observer((props: any) => {
     else if (type === 'cancelConfirm') {
       extensionStore.removeApplyUserBy(option.userUuid)
     }
+    else if (type === 'unmuteApply') {
+      if (option.type === 'video') {
+        await middleRoomStore.unmuteVideo(option.userUuid, true)
+      }
+      if (option.type === 'audio') {
+        await middleRoomStore.unmuteAudio(option.userUuid, true)
+      }
+    }
 
     return;
-  }, [props.handleLocationConfirm, location.pathname, breakoutRoomStore, roomStore, uiStore, history, extensionStore])
+  }, [props.handleLocationConfirm, location.pathname, breakoutRoomStore, roomStore, uiStore, history, extensionStore, middleRoomStore])
 
   return <>
     {

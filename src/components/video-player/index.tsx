@@ -41,16 +41,12 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
 
   const userReward = middleRoomStore.getUserReward(userUuid)
 
-  // const userReward = {
-  //   num: 111,
-  //   reward: 10
-  // }
-
   const handleAudioClick = async () => {
     if (props.audio) {
       await sceneStore.muteAudio(props.userUuid, false)
     } else {
-      await sceneStore.unmuteAudio(props.userUuid, false)
+      await sceneStore.sendUnmuteApply('audio', props.userUuid)
+      // await sceneStore.unmuteAudio(props.userUuid, false)
     }
   }
 
@@ -58,7 +54,8 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
     if (props.video) {
       await sceneStore.muteVideo(props.userUuid, false)
     } else {
-      await sceneStore.unmuteVideo(props.userUuid, false)
+      await sceneStore.sendUnmuteApply('video', props.userUuid)
+      // await sceneStore.unmuteVideo(props.userUuid, false)
     }
   }
 
