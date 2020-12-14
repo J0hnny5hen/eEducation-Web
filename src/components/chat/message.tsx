@@ -5,6 +5,7 @@ import { t } from '@/i18n';
 interface MessageProps {
   nickname: string
   content: string
+  isUrl?: boolean
   link?: string
   sender?: boolean
   children?: any
@@ -23,6 +24,7 @@ const roles = [
 export const Message: React.FC<MessageProps> = ({
   nickname,
   content,
+  isUrl,
   link,
   sender,
   children,
@@ -39,7 +41,11 @@ export const Message: React.FC<MessageProps> = ({
     <div className="content">
       {link ?
         <Link to={`/replay/record/${link}`} target="_blank">{t('course_recording')}</Link>
-        : content
+        : 
+        isUrl ?
+        <div dangerouslySetInnerHTML={{__html: content}} />
+        :
+        content
       }
     </div>
     {children ? children : null}

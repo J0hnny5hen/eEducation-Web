@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import {VideoPlayer} from '@/components/video-player';
-import { observer } from 'mobx-react';
 import './video-marquee.scss';
 
 const showScrollbar = () => {
@@ -21,14 +20,15 @@ const showScrollbar = () => {
 }
 
 type VideoMarqueePropsType = {
-  mainStream?: any,
+  mainStream: any,
   othersStreams: any[]
   className?: string
   showMain?: boolean
   canHover?: boolean
 }
 
-export const VideoMarquee: React.FC<VideoMarqueePropsType> = observer(({className, showMain, mainStream, canHover, othersStreams}) => {
+export const VideoMarquee = (props: VideoMarqueePropsType) => {
+  const {mainStream, othersStreams} = props
 
   const marqueeEl = useRef(null);
 
@@ -69,10 +69,10 @@ export const VideoMarquee: React.FC<VideoMarqueePropsType> = observer(({classNam
   }, []);
 
   return (
-    <div className={`video-marquee-container ${className ? className : ''}`}>
+    <div className={`video-marquee-container ${props.className ? props.className : ''}`}>
       {mainStream ? <div className="main">
         <VideoPlayer
-          showHover={canHover}
+          showHover={props.canHover}
           showClose={false}
           role="teacher"
           {...mainStream}
@@ -88,7 +88,7 @@ export const VideoMarquee: React.FC<VideoMarqueePropsType> = observer(({classNam
         }
           {othersStreams.map((studentStream: any, key: number) => (
             <VideoPlayer
-              showHover={canHover}
+              showHover={props.canHover}
               key={key}
               showClose={false}
               role="student"
@@ -99,4 +99,4 @@ export const VideoMarquee: React.FC<VideoMarqueePropsType> = observer(({classNam
       </div>
     </div>
   )
-})
+}

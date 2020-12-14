@@ -1,16 +1,68 @@
-import React, {Fragment, useCallback, useEffect, useRef} from 'react'
+import React, {Fragment, useCallback, useEffect, useRef, useState} from 'react'
 import { useExtensionStore, useMiddleRoomStore, useRoomStore, useUIStore } from "@/hooks"
 import { observer } from 'mobx-react'
 import {CustomIcon} from '@/components/icon'
 import { Card, ClickAwayListener, List, ListItem } from '@material-ui/core';
+import {Check, Close} from '@material-ui/icons';
 import './index.scss';
-import { CircleLoading } from '../circle-loading';
+import { t } from '@/i18n';
 
 const MAX_LENGTH = 4
 interface TickProps {
   tick: number
   className: string
 }
+
+interface StudentApplyCardProps {
+  userName: string
+  userUuid: string
+  streamUuid: string
+  state: boolean
+}
+
+const StudentApplyCard = observer((props: StudentApplyCardProps) => {
+  const extensionStore = useExtensionStore()
+  const uiStore = useUIStore()
+  const [shake, setShake] = useState<boolean>(props.state)
+
+  const handleClick = () => {
+    setShake(false)
+  }
+
+  return (
+    <ListItem
+      // onClick={async (evt: any) => {
+      //   await extensionStore.acceptApply(props.userUuid, props.streamUuid)
+      // }}
+    >
+      <div className="user-item">{props.userName}</div>
+      <div className={`icons-lecture-board-inactive ${shake ? "infinity-shake": ""}`} onClick={handleClick} />
+      <div style={{width: "25px", cursor: "pointer", marginRight: "5px"}}>
+        <Check onClick={() => {
+          uiStore.showDialog({
+            type: 'allowConfirm',
+            option: {
+              userUuid: props.userUuid,
+              streamUuid: props.streamUuid,
+            },
+            message: t('allow_confirm')
+          })
+        }}/>
+      </div>
+      <div style={{width: "25px", cursor: "pointer"}}>
+        <Close onClick={() => {
+          uiStore.showDialog({
+            type: 'cancelConfirm',
+            option: {
+              userUuid: props.userUuid
+            },
+            message: t('cancel_confirm')
+          })
+        }}/>
+      </div>
+    </ListItem>
+  )
+})
 
 export const ApplyUserList = observer(() => {
   const middleRoomStore = useMiddleRoomStore()
@@ -61,7 +113,7 @@ export const ApplyUserList = observer(() => {
       <div className="student_hand_tools"
         onMouseOut={onMouseOut}
       >
-        <div className={`student-apply active_hands_up ${extensionStore.inTick ? 'bg-white' : ''}`}
+        <div className={`student-apply ${extensionStore.handsUp ? "inactive_hands_up" : "active_hands_up"} ${extensionStore.inTick ? 'bg-white' : ''}`}
           onMouseDown={onMouseDown}
           onMouseUp={onMouseUp}
         >
@@ -78,21 +130,19 @@ export const ApplyUserList = observer(() => {
             <CustomIcon className={`active_hands_up ${uiStore.visibleShake ? 'shake' : '' }`} onClick={handleTeacherClick} />
           </div>
         </ClickAwayListener>
-        {extensionStore.applyUsers.length}/{MAX_LENGTH}
+        {extensionStore.applyUsers.slice(0, 4).length}/{MAX_LENGTH}
         {extensionStore.visibleUserList ?
         <div className="apply-user-list">
           <Card>
             <List disablePadding={true}>
-            {extensionStore.applyUsers.map((user, idx) => (
-              <ListItem button
+            {extensionStore.applyUsers.slice(0, 4).map((user, idx) => (
+              <StudentApplyCard 
                 key={idx}
-                onClick={async (evt: any) => {
-                  await extensionStore.acceptApply(user.userUuid, user.streamUuid)
-                }}
-              >
-                <div className="user-item">{user.userName}</div>
-                <div className="icons-lecture-board-inactive" />
-              </ListItem>
+                userName={user.userName}
+                userUuid={user.userUuid}
+                streamUuid={user.streamUuid}
+                state={user.state}
+              />
             ))}
             </List>
           </Card>

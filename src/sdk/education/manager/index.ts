@@ -17,6 +17,7 @@ export type ClassroomInitParams = {
 export type ClassRoomAuthorization = string
 
 export class EduManager extends EventEmitter {
+  // recommend use enable true
   private static enable: boolean = true
 
   private apiService!: AgoraEduApi;

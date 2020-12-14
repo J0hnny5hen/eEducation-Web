@@ -5,6 +5,10 @@
   position: relative;
 }
 
+.nav-button {
+  pointer-events: auto !important;
+}
+
 .menu-nav-right {
   display: flex;
   justify-content: space-evenly;

@@ -8,7 +8,8 @@ import { EduLogger } from '../logger';
 //@ts-ignore
 AgoraRTM.setParameter({ 
   RECONNECTING_AP_INTERVAL: 2000,
-  RECONNECTING_AP_NUM: 1
+  RECONNECTING_AP_NUM: 1,
+  DISABLE_MESSAGE_COMPRESSION: true
 })
 
 // const logFilter = ENABLE_LOG ? AgoraRTM.LOG_FILTER_DEBUG : AgoraRTM.LOG_FILTER_OFF;

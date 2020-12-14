@@ -5,9 +5,13 @@ const zhCN: any = {
   "extension": {
     "grouping": "分组",
     "hands_up": "举手",
+    "hands_up_timeout": "举手已超时",
   },
   "invitation": {
-    "apply_failed": "申请失败",
+    "apply_success": "发起举手成功",
+    "stop_success": "取消举手成功",
+    "apply_failed": "举手发起失败",
+    "stop_failed": "取消举手失败"
   },
   "switch": {
     "enable_auto_hands_up": "举手即上台",
@@ -83,6 +87,7 @@ const zhCN: any = {
     'unlocked_board': '白板已解除锁定。',
   },
   'toast': {
+    'kick_by_teacher': '被老师踢出',
     'upload_log_failure': '上传日志失败，错误类型：{reason}, 详情参考开发者工具',
     'show_log_id': `请提供你的日志ID: {no}`,
     'api_login_failured': '房间加入失败, 原因: {reason}',
@@ -254,6 +259,7 @@ const zhCN: any = {
     'exit': '退出',
   },
   "middle_room": {
+    'student_hands_down': `学生: "{reason}"取消了举手`,
     'student_hands_up': `学生："{reason}"举手了'`,
     'the_teacher_accepted': `老师同意了举手申请`,
     'end_covideo_by_teacher': '老师关闭了你的连麦',
@@ -261,6 +267,8 @@ const zhCN: any = {
   },
   'course_recording': '录制回放',
   'build_version': `构建版本: ${build_version}`,
+  'cancel_confirm': '确定忽略吗？',
+  'allow_confirm': '确定允许吗？',
 }
 
 export default zhCN;

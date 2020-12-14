@@ -20,7 +20,7 @@ import {
 } from '../interfaces/index.d';
 import { EduClassroomManager } from '../room/edu-classroom-manager';
 import { EduLogger } from '../core/logger';
-import { get, set, isEmpty, pick, cloneDeep } from 'lodash';
+import { get, set, isEmpty, pick } from 'lodash';
 import { diff } from 'deep-diff';
 
 enum DataEnumType {
@@ -331,8 +331,7 @@ export class EduClassroomDataController {
         }
 
         case EduChannelMessageCmdType.roomPropertiesBatchUpdated: {
-          // this.updateBatchRoomProperties(data.changeProperties, data.cause)
-          this.setRoomBatchProperties(data.changeProperties, data.cause)
+          this.updateBatchRoomProperties(data.changeProperties, data.cause)
           break;
         }
 
@@ -472,7 +471,7 @@ export class EduClassroomDataController {
       cmd: buffer.cmd,
       data: buffer.data
     }
-    EduLogger.info('Raw ChannelMessage, buffer >>> ', JSON.stringify(this._bufferMap[buffer.seqId]))
+    EduLogger.info('Raw ChannelMessage, buffer ### ', JSON.stringify(this._bufferMap[buffer.seqId]))
     if (!buffer.hasOwnProperty('seqId')) {
       EduLogger.error("buffer", buffer)
       throw 'seqId not exists'
@@ -1211,7 +1210,7 @@ export class EduClassroomDataController {
     }
     
     this._roomStatus = curState
-    EduLogger.info(">>> setRoomStatus ", state)
+    EduLogger.info("### setRoomStatus ", state)
     if (diff(prevState, curState)) {
       this.fire('classroom-property-updated', this.classroom, cause)
     }
@@ -1226,7 +1225,7 @@ export class EduClassroomDataController {
     }
     
     this._roomProperties = curState
-    EduLogger.info(">>> setRoomProperties ", curState)
+    EduLogger.info("### setRoomProperties ", curState)
     if (diff(prevState, curState)) {
       this.fire('classroom-property-updated', this.classroom, cause)
     }
@@ -1266,15 +1265,14 @@ export class EduClassroomDataController {
     }
 
     this._roomProperties = curState
-    EduLogger.info(">>> setRoomProperties ", curState)
-    if (diff(prevState, curState)) {
-      this.fire('classroom-property-updated', this.classroom, cause)
-    }
+    EduLogger.info("### setRoomProperties ", curState)
+    // if (diff(prevState, curState)) {
+    this.fire('classroom-property-updated', this.classroom, cause)
   }
 
-  setRoomBatchProperties(roomProperties: any, cause?: CauseType) {
+  setRoomBatchProperties(roomProperties: any) {
     const mergeRoomProperties = (properties: any, changeProperties: any) => {
-      let newProperties = cloneDeep(properties)
+      let newProperties = {...properties}
       for (let key in changeProperties) {
         set(newProperties, key, changeProperties[key])
       }
@@ -1285,10 +1283,10 @@ export class EduClassroomDataController {
     const curState = mergeRoomProperties(prevState, roomProperties)
 
     this._roomProperties = curState
-    EduLogger.info(">>> setRoomBatchProperties ", curState)
-    if (diff(prevState, curState)) {
-      this.fire('classroom-property-updated', this.classroom, cause)
-    }
+    EduLogger.info("### setRoomBatchProperties ", curState)
+    // if (diff(prevState, curState)) {
+      this.fire('classroom-property-updated', this.classroom)
+    // }
   }
 
   private _localUserData?: EduUserData

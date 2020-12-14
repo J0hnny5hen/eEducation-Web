@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {VideoPlayer} from '@/components/video-player';
 import { ControlItem } from '@/components/control-item';
 import './middle-class.scss';
@@ -13,30 +13,40 @@ import {ChatPanel} from '@/components/chat/panel';
 import { t } from '@/i18n';
 import { UserGroup } from '@/sdk/education/interfaces/index.d';
 import {StudentList} from '@/components/student-list';
-import { get } from 'lodash';
-
-// 检测拖拽性能
-// const genUsersList = (num: number) => {
-//   const items = Array.from({length: num}, (v, i) => i)
-//   return items.map(item => ({
-//     userName: `streamName-${item}`,
-//     streamUuid: `${num}`,
-//     userUuid: `${item}`,
-//   }))
-// }
-
-// const userLists = genUsersList(2000)
+import { EduMediaStream } from '@/stores/app/room';
 
 interface StreamsProps {
-  othersStreams: any
+  othersStreams: any[]
+  mainStream: any
 }
 
 const GroupVideoMarquee: React.FC<StreamsProps> = observer(
-  ({othersStreams}) => { 
+  ({othersStreams, mainStream}) => { 
   return <VideoMarquee
     className="group first-group"
     canHover={true}
+    mainStream={mainStream}
     othersStreams={othersStreams}
+  />
+})
+
+// const FirstGroupVideoMarquee = observer(() => {
+//   const store = useMiddleRoomStore()
+//   return <VideoMarquee
+//     className="group first-group"
+//     canHover={true}
+//     mainStream={store.groups[0].mainStream}
+//     othersStreams={store.groups[0].studentStreams}
+//   />
+// })
+
+const SecondGroupVideoMarquee = observer(() => {
+  const store = useMiddleRoomStore()
+  return <VideoMarquee
+    className="group second-group"
+    canHover={true}
+    mainStream={store.groups[1].mainStream}
+    othersStreams={store.groups[1].studentStreams}
   />
 })
 
@@ -54,7 +64,9 @@ export const MiddleClass = observer(() => {
     roomProperties,
     userGroups,
     roomStudentUserList,
-    studentUserList
+    studentUserList,
+    studentsList,
+    studentTotal
   } = middleRoomStore
 
   const {
@@ -65,6 +77,10 @@ export const MiddleClass = observer(() => {
   } = sceneStore
 
   const [chat, setChat] = useState<string>('')
+  // const [showGroupCard, setShowGroupCard] = useState<boolean>(false)
+  const [alreadyPlatform, setAlreadyPlatform] = useState<boolean>(false)
+  const [starGroup, setStarGroup] = useState<number>(0)
+  
   const userRole = middleRoomStore.roomInfo.userRole
   const boardStore = useBoardStore()
   const {grantUsers} = boardStore
@@ -74,9 +90,49 @@ export const MiddleClass = observer(() => {
     setChat('')
   }
 
-  const handleClick = async (evt: any, id: string, type: string) => {
-    
-  }
+  const handleClick = useCallback(async (evt: any, id: string, type: string) => {
+    const isLocal = (userUuid: string) => sceneStore.roomInfo.userUuid === userUuid
+    if (sceneStore.roomInfo.userRole === 'teacher' 
+    // || isLocal(id)
+    )  {
+      const target = studentsList.find((it) => it.userUuid === id)
+      if (!target) return
+      switch(type) {
+        case 'kick': {
+          await middleRoomStore.roomManager.userService.kickUser(id)
+          break
+        }
+        case 'grantBoard': {
+          if (boardStore.checkUserPermission(id)) {
+            await boardStore.revokeBoardPermission(id)
+          } else {
+            await boardStore.grantBoardPermission(id)
+          }
+          break
+        }
+        case 'audio': {
+          if (target) {
+            if (target.audio) {
+              await middleRoomStore.muteAudio(id, isLocal(id))
+            } else {
+              await middleRoomStore.unmuteAudio(id, isLocal(id))
+            }
+          }
+          break
+        }
+        case 'video': {
+          if (target) {
+            if (target.video) {
+              await middleRoomStore.muteVideo(id, isLocal(id))
+            } else {
+              await middleRoomStore.unmuteVideo(id, isLocal(id))
+            }
+          }
+          break
+        }
+      }
+    }
+  }, [sceneStore, boardStore, studentsList, middleRoomStore])
 
   const handleMute = async () => {
     if (mutedChat) {
@@ -90,26 +146,125 @@ export const MiddleClass = observer(() => {
     // middleRoomStore.showDialog()
   }
 
+  const handleGroupOnSave = async function(groups:any) {
+    let backendGroups: Object = {}
+    for(let i = 0; i < groups.length; i++) {
+      let groupNum: number = i + 1
+      let groupItem: any = {
+        groupName: "",
+        members: [],
+      }
+      groupItem.groupName = "group" + groupNum
+      groupItem.members = groups[i].map((stu:any) => stu.userUuid)
+      backendGroups[groupNum] = groupItem
+    }
+    let properties:any = {
+      groupStates: {
+        state: 1,
+        interactInGroup: 0, // 组内
+        interactOutGroup: 0, // 组外讨论 包括分组，pk
+      },
+      groups: backendGroups
+    }
+    let cause = {cmd:"102"}
+    await middleRoomStore.updateRoomBatchProperties({ properties, cause })
+  }
+
+  // 删除
+  const handleGroupOnRemove = async () => {
+    let cause = {cmd:"101"}
+    let properties: any = {
+      groupStates: {
+        state: 0,
+        interactInGroup: 0, // 组内
+        interactOutGroup: 0, // 组外讨论 包括分组，pk
+      },
+      interactOutGroups: {}, // 组外互动
+      groups: {}
+    }
+    await middleRoomStore.updateRoomBatchProperties({ properties, cause })
+  }
+
+  // 整组上台
+  const handlePlatform = async (group:any) => {
+    if(alreadyPlatform) {
+      // 如果当前分组已经在台上 则下台
+      let streams:any = []
+      group.members.forEach((item:any) => {
+        let stu = {
+          userUuid: item.userUuid,
+          streamUuid: item.streamUuid,
+        }
+        streams.push(stu)
+      })
+      await middleRoomStore.batchDeleteStream(streams)
+      setAlreadyPlatform(false)
+    } else {
+      let streams:any = []
+      group.members.forEach((item:any) => {
+        let stu = {
+          userUuid: item.userUuid,
+          streamUuid: item.streamUuid,
+          streamName: item.userUuid + 'stream',
+          videoSourceType: 1,
+          audioSourceType: 1,
+          videoState: 1,
+          audioState: 1,
+        }
+        streams.push(stu)        
+      })
+      await middleRoomStore.batchUpsertStream(streams)
+      let properties: any = {
+        groupStates: {
+          state: 1,
+          interactInGroup: 0, // 组内
+          interactOutGroup: 1, // 组外讨论 包括分组，pk
+        },
+        interactOutGroups: {
+          g1: group.groupUuid,
+        }
+      }
+      let cause = {cmd:"104"} // 开关 pk
+      middleRoomStore.updateRoomBatchProperties({ properties, cause })
+      setAlreadyPlatform(true)
+    }
+  }
+
+  // 整组加星
+  const handleAddGroupStar = async function(group: UserGroup) {
+    let properties: any
+    let cause: any 
+    group.members.map((stu: any) => {
+      stu.reward = stu.reward + 1
+      properties = {
+        [`students.${stu.userUuid}.reward`]: stu.reward,
+      }
+      cause = {cmd:"202"} // 整组奖励
+    })
+    await middleRoomStore.updateRoomBatchProperties({ properties, cause })
+  }
   
   return (
-    <div className="room-container">
+    <div className={`room-container`}>
       <div className="live-container">
         <div className="platform-room">
-         {
+          {
             middleRoomStore.platformState.g1 ?
-            <GroupVideoMarquee othersStreams={middleRoomStore.platformState.g1Members}/>
+              <GroupVideoMarquee mainStream={null} othersStreams={middleRoomStore.platformState.g1Members}/>
             : null
-         }
+          }
         </div>
         <div className="biz-container">
           <NetlessBoard />
           <ScreenSharing />
           {
             extensionStore.controlGrouping ?
-            <MiddleGrouping dataList={roomStudentUserList} 
-            studentTotal={Object.keys(middleRoomStore.roomProperties.students).length}
-            onSave={(groups) => {middleRoomStore.groupOnSave(groups)}} 
-            onRemove={middleRoomStore.removeGroup} />
+            <MiddleGrouping
+            dataList={roomStudentUserList} 
+            studentTotal={studentTotal}
+            // studentTotal={Object.keys(middleRoomStore.roomProperties.students).length}
+            onSave={async (groups) => {await middleRoomStore.groupOnSave(groups)}} 
+            onRemove={async () => await middleRoomStore.removeGroup} />
             : null
           }
           {
@@ -126,12 +281,13 @@ export const MiddleClass = observer(() => {
           </div>
         </div>
         <div className="platform-room-second">
-          {
-            middleRoomStore.platformState.g2 ?
-            <GroupVideoMarquee othersStreams={middleRoomStore.platformState.g2Members}/>
-            : null
-          }
+        {
+          middleRoomStore.platformState.g2 ?
+            <GroupVideoMarquee mainStream={null} othersStreams={middleRoomStore.platformState.g2Members}/>
+          : null
+        }
         </div>
+        {/* <SecondGroupVideoMarquee /> */}
       </div>
       <div className="live-board">
         <div className="video-board">
@@ -155,7 +311,7 @@ export const MiddleClass = observer(() => {
               uiStore.switchTab('chatroom')
             }}>
               {t('room.chat_room')}
-              {uiStore.activeTab !== 'chatroom' && middleRoomStore.unreadMessageCount > 0 ? <span className={`message-count`}>{middleRoomStore.unreadMessageCount}</span> : null}
+              {uiStore.activeTab !== 'chatroom' && middleRoomStore.unreadMessageCount > 0 ? <span className={`message-count`}>cdscdsc</span> : null}
             </div>
           </div>
           <div className={`chat-container ${uiStore.activeTab === 'chatroom' ? '' : 'hide'}`}>
@@ -189,7 +345,7 @@ export const MiddleClass = observer(() => {
             :
             <StudentList
               userRole={userRole}
-              studentStreams={roomStudentUserList}
+              students={roomStudentUserList}
               grantUsers={grantUsers}
               handleClick={handleClick}
               isMiddleClassRoom={true}

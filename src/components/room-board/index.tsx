@@ -125,7 +125,7 @@ const RoomBoardController = observer((props: any) => {
       <div className={`student-container ${uiStore.activeTab === 'student_list' ? '' : 'hide'}`}>
         <StudentList
           userRole={userRole}
-          studentStreams={studentStreams}
+          students={studentStreams}
           grantUsers={grantUsers}
           handleClick={handleClick}
           isMiddleClassRoom={false}

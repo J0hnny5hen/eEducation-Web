@@ -39,20 +39,21 @@ interface UserProps {
   account: string
   video: number
   audio: number
+  kick: number
   chat: number
 }
 
 interface StudentListProps {
   userRole: string,
-  studentStreams: any[],
+  students: any[],
   grantUsers: any[],
-  isMiddleClassRoom: boolean,
+  isMiddleClassRoom?: boolean,
   handleClick: (...target: any[]) => Promise<void>,
 }
 
 export const StudentList: React.FC<StudentListProps> = observer(({
   userRole,
-  studentStreams,
+  students,
   grantUsers,
   handleClick,
   isMiddleClassRoom
@@ -60,22 +61,19 @@ export const StudentList: React.FC<StudentListProps> = observer(({
 
   return (
     <div className="student-list"> 
-      {studentStreams.map((item: any, key: number) => (
-        <div key={key} className="item">
-          { isMiddleClassRoom ? 
-            <div className="nickname">{item.userName}</div>
-            :
-            <>
-            <div className="nickname">{item.account}</div>
-            <div className="attrs-group">
-              {userRole === 'teacher' ? <IconWrapper type="grantBoard" id={item.userUuid} value={grantUsers.includes(item.userUuid)} icon="connect" onClick={handleClick} /> : null}
+      {students.map((item: any, key: number) => (
+        <div key={key} className={`item ${item.offline ? 'no-hover' : ''}`}>
+          <div className="nickname">{item.account}</div>
+            <div className={`attrs-group ${userRole !== 'teacher' ? 'no-hover' : ''}`}>
+              {/* {
+                userRole === 'teacher' ? 
+                <IconWrapper type="grantBoard" id={item.userUuid} value={grantUsers.includes(item.userUuid)} icon="connect" onClick={handleClick} /> : null
+              } */}
               {/* {roomStore.roomInfo.userRole === 'teacher' ? <IconWrapper type="grantBoard" id={item.userUuid} value={grantUsers.includes(item.userUuid)} icon="connect" onClick={handleClick} /> : null} */}
-              {/* <IconWrapper type="chat" id={item.userUuid} value={Boolean(item.chat)} icon="chat" onClick={handleClick} /> */}
-              <IconWrapper type="audio" id={item.userUuid} value={Boolean(item.audio)} icon="audio" onClick={handleClick} />
-              <IconWrapper type="video" id={item.userUuid} value={Boolean(item.video)} icon="video" onClick={handleClick} />
+              {item.hasOwnProperty('audio') ? <IconWrapper type="audio" id={item.userUuid} value={Boolean(item.audio)} icon="audio" onClick={handleClick} /> : <div className="items"></div>}
+              {item.hasOwnProperty('video') ? <IconWrapper type="video" id={item.userUuid} value={Boolean(item.video)} icon="video" onClick={handleClick} /> : <div className="items"></div>}
+              {userRole === 'teacher' && <IconWrapper type="kick" id={item.userUuid} value={Boolean(item.kick)} icon="kick" onClick={handleClick} />}
             </div>
-            </>
-          }
         </div>
       ))}
     </div>

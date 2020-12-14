@@ -702,12 +702,27 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
         encoderConfig: options.encoderConfig,
       }, options.shareAudio)
 
-      if (options.shareAudio === 'enable') {
-        const screenTracks: [ILocalVideoTrack, ILocalAudioTrack] = tracks as [ILocalVideoTrack, ILocalAudioTrack]
-        this.screenVideoTrack = screenTracks[0]
-        this.screenAudioTrack = screenTracks[1]
-      } else {
-        this.screenVideoTrack = tracks as ILocalVideoTrack
+      switch(options.shareAudio) {
+        case 'enable': {
+          const screenTracks: [ILocalVideoTrack, ILocalAudioTrack] = tracks as [ILocalVideoTrack, ILocalAudioTrack]
+          this.screenVideoTrack = screenTracks[0]
+          this.screenAudioTrack = screenTracks[1]
+          break;
+        }
+        case 'auto': {
+          if (tracks.hasOwnProperty('trackMediaType')) {
+            this.screenVideoTrack = tracks as ILocalVideoTrack
+          } else {
+            const screenTracks: [ILocalVideoTrack, ILocalAudioTrack] = tracks as [ILocalVideoTrack, ILocalAudioTrack]
+            this.screenVideoTrack = screenTracks[0]
+            this.screenAudioTrack = screenTracks[1]
+          }
+          break;
+        }
+        default: {
+          this.screenVideoTrack = tracks as ILocalVideoTrack
+          break;
+        }
       }
 
       (this.screenVideoTrack as ILocalTrack).on('track-ended', () => {

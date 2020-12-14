@@ -54,34 +54,12 @@ const RoomController = observer(({children}: any) => {
       return
     }
 
-    window.history.pushState(null, document.title, window.location.href);
-
-    const handlePopState = (evt: any) => {
-      window.history.pushState(null, document.title, null);
-      if (roomStore.joined && !uiStore.hasDialog('exitRoom')) {
-        uiStore.showDialog({
-          type: 'exitRoom',
-          message: t('icon.exit-room'),
-        })
-      }
-    }
-
-    window.addEventListener('popstate', handlePopState, false)
-
-    let pathList = location.pathname.split('/')
-    let path = pathList[pathList.length - 1]
-
     roomStore.join().then(() => {
       uiStore.addToast(t('toast.successfully_joined_the_room'))
     }).catch((err) => {
       BizLogger.warn(err.msg)
       uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
     })
-
-    
-    return () => {
-      window.removeEventListener('popstate', handlePopState, false)
-    }
   }, [])
   
   let pathList = location.pathname.split('/')

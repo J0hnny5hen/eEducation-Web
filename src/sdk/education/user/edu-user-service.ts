@@ -349,7 +349,7 @@ export class EduUserService extends EventEmitter implements IEduUserService {
     const prevVideoState = +this.localStream.stream.hasVideo
     const curAudioState = args.hasOwnProperty('audioState') ? +args['audioState']: prevAudioState
     const curVideoState = args.hasOwnProperty('videoState') ? +args['videoState'] : prevVideoState
-    EduLogger.info("args>>> ", args, this.localStream.stream, args)
+    EduLogger.info("args### ", args, this.localStream.stream, args)
     await this.apiService.updateBizStream({
       roomUuid: this.roomUuid,
       userUuid: this.localUserUuid,
@@ -358,7 +358,8 @@ export class EduUserService extends EventEmitter implements IEduUserService {
       audioSourceType: this.localStream.stream.audioSourceType,
       videoState: curVideoState,
       audioState: curAudioState,
-      streamName: this.localStream.stream.streamName
+      streamName: this.localStream.stream.streamName,
+      generateToken: false
     })
     // this.localStream.updateMediaState({
     //   hasVideo: curVideoState,

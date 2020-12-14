@@ -2,8 +2,8 @@
 .middle-class {
   .agora-video-view {
     border-right: 1px solid white;
-    min-width: 120px;
-    min-height: 120px;
+    min-width: 158px;
+    min-height: 158px;
     > .student-placeholder {
       flex: 1 1;
       background-color: #DBE2E5;
@@ -156,13 +156,3 @@
 .platform-room {
   margin-left: 10px;
 }
-
-.platform-room-second {
-  margin-left: 10px;
-}
-
-.first-group {
-  min-width: 120px;
-  min-height: 120px;
-}
-

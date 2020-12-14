@@ -1,5 +1,12 @@
 
 
+// .offline {
+//   cursor:not-allowed;
+//   background: #00000033;
+// }
+.no-hover {
+  pointer-events: none;
+}
 
 .student-list {
   position: absolute;
@@ -14,6 +21,7 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    height: 40px;
   }
   .nickname {
     margin-left: 10px;

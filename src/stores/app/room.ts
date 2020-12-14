@@ -1,5 +1,3 @@
-import { roomTypes } from './../../pages/breakout-class/breakout-class';
-import { Mutex } from './../../utils/mutex';
 import uuidv4 from 'uuid/v4';
 import { SimpleInterval } from './../mixin/simple-interval';
 import { EduBoardService } from './../../sdk/board/edu-board-service';
@@ -640,14 +638,16 @@ export class RoomStore extends SimpleInterval {
   showDialog(userName: string, userUuid: any) {
     const isExists = this.appStore
       .uiStore
-      .dialogs.filter((it: DialogType) => it.dialog.userUuid)
-      .find((it: DialogType) => it.dialog.userUuid === userUuid)
+      .dialogs.filter((it: DialogType) => it.dialog.option)
+      .find((it: DialogType) => it.dialog.option.userUuid === userUuid)
     if (isExists) {
       return
     }
     this.appStore.uiStore.showDialog({
       type: 'apply',
-      userUuid: userUuid,
+      option: {
+        userUuid,
+      },
       message: `${userName}` + t('icon.requests_to_connect_the_microphone')
     })
   }
@@ -655,8 +655,8 @@ export class RoomStore extends SimpleInterval {
   removeDialogBy(userUuid: any) {
     const target = this.appStore
     .uiStore
-    .dialogs.filter((it: DialogType) => it.dialog.userUuid)
-    .find((it: DialogType) => it.dialog.userUuid === userUuid)
+    .dialogs.filter((it: DialogType) => it.dialog.option)
+    .find((it: DialogType) => it.dialog.option.userUuid === userUuid)
     if (target) {
       this.appStore.uiStore.removeDialog(target.id)
     }

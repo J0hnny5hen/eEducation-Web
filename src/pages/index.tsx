@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, HashRouter, Switch } from 'react-router-dom';
+import { Route, HashRouter, Switch, Prompt } from 'react-router-dom';
 import ThemeContainer from '../containers/theme-container';
 import Home from './home';
 import {DeviceDetectPage} from './device-detect/index';
@@ -13,7 +13,7 @@ import {BreakoutClassroom} from './breakout-class/breakout-class';
 import {OneToOne} from './classroom/one-to-one';
 import {MiddleClass} from './middle-class/middle-class';
 import {BigClass} from './classroom/big-class';
-import RoomDialog from '../components/dialog';
+import {ConfirmDialog} from '../components/dialog';
 import { ReplayPage } from './replay';
 import {Provider} from 'mobx-react';
 import { AppStore } from '@/stores/app';
@@ -29,7 +29,7 @@ export default function () {
         <HashRouter>
           <Loading />
           <Toast />
-          <RoomDialog />
+          <ConfirmDialog />
           <Switch>
           <Route path="/setting">
             <DeviceDetectPage />

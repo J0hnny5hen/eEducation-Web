@@ -27,7 +27,10 @@ export const Board = observer(() => {
   return (
     <div className="board-container">
       <FolderMenu />
-      <div ref={mountToDOM} className="edu-demo-board" id="netless-board"></div>
+      <div ref={mountToDOM} className="edu-demo-board" id="netless-board">
+        {/* <ShadowRoot mode="open">
+        </ShadowRoot> */}
+      </div>
       {boardStore.hasPermission ? <Tools /> : null}
       <FooterMenu />
       <BoardLoading />

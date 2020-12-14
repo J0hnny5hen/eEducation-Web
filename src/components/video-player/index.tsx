@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CustomIcon } from "../icon"
 import './index.scss'
-import { useMiddleRoomStore, useSceneStore } from '@/hooks'
+import { useExtensionStore, useMiddleRoomStore, useSceneStore } from '@/hooks'
 import { RendererPlayer } from '../media-player'
 import { observer } from 'mobx-react'
 import { get } from 'lodash'
@@ -23,6 +23,7 @@ type VideoPlayerProps = {
   showControls: boolean
   showStar?: boolean
   showHover?: boolean
+  showMediaBtn?: boolean
   handleClickVideo?: (userUuid: string, isLocal: boolean) => void
   handleClickAudio?: (userUuid: string, isLocal: boolean) => void
 }
@@ -38,11 +39,8 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
   const sceneStore = useSceneStore()
   const middleRoomStore = useMiddleRoomStore() 
 
-  const userReward = {
-    num: 111,
-    reward: 10
-  }
-
+  const userReward = middleRoomStore.getUserReward(userUuid)
+  
   const handleAudioClick = async () => {
     if (props.audio) {
       await sceneStore.muteAudio(props.userUuid, false)
@@ -60,12 +58,11 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
   }
 
   // TODO: 需要完善，中班课场景的发送奖励
-  const sendReward = async () => {
-    await middleRoomStore.sendReward(props.userUuid, userReward.reward)
-    setRewardNum(prevNumber.current + 1)
-  }
+  const sendReward = useCallback(async () => {
+    userReward && await middleRoomStore.sendReward(userReward.userUuid, userReward.reward)
+  }, [userReward])
 
-  // TODO: 需要完善，中班课场景的下麦
+  // TODO: close co-video
   const handleClose = async () =>{
     await middleRoomStore.sendClose(props.userUuid)
   }
@@ -84,9 +81,7 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
     )
   }
 
-  const _rewardNumber: number = +get(userReward, 'num', 1)
-
-  const [rewardNumber, setRewardNum] = useState<number>(_rewardNumber)
+  const rewardNumber: number = +get(userReward, 'reward', 1)
 
   const prevNumber = useRef<number>(rewardNumber)
 
@@ -134,6 +129,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   audio,
   video,
   showControls,
+  showMediaBtn,
   share = false,
   showStar,
   handleClickVideo,
@@ -169,6 +165,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }
 
+  const extensionStore = useExtensionStore()
+
+  // const shake = useMemo(() => {
+  //   return extensionStore.coVideoStudentsList.find((it) => it.userUuid === userUuid) ? true : false
+  // }, [extensionStore.coVideoStudentsList])
+
   return (
     <div className={`${className ? className : 'agora-video-view'}`}>
       {showClose ? <div className="icon-close" onClick={handleClose}></div> : null}
@@ -193,6 +195,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         account ? 
         <div className="video-profile">
           <span className="account">{account}</span>
+          {/* {shake && <div className={`active_hands_up ${shake ? "infinity-shake": ""}`} style={{width: "24px"}} />} */}
           {showStar ? 
             // <CustomIcon onClick={() => {}} className={audio ? "icon-hollow-white-star" : "icon-inactive-star"} data={"active-star"} />
             <CustomIcon onClick={() => {}} className={"icon-hollow-white-star"} data={"active-star"} />
@@ -202,6 +205,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               <CustomIcon onClick={handleAudioClick} className={audio ? "icon-speaker-on" : "icon-speaker-off"} data={"audio"} />
               <CustomIcon onClick={handleVideoClick} className={video ? "icons-camera-unmute-s" : "icons-camera-mute-s"} data={"video"} />
             </span> : null}
+          {/* {showMediaBtn ?
+          <span className="media-btn no-hover">
+            <CustomIcon onClick={() => {}} className={audio ? "icon-speaker-on" : "icon-speaker-off"} data={"audio"} />
+            <CustomIcon onClick={() => {}} className={video ? "icons-camera-unmute-s" : "icons-camera-mute-s"} data={"video"} />
+          </span> : null} */}
         </div>
         : null
       }

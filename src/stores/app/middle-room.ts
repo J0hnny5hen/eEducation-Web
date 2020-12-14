@@ -1,7 +1,7 @@
 import { ExtensionStore } from './extension';
 import { SimpleInterval } from './../mixin/simple-interval';
 import { CauseType } from './../../sdk/education/core/services/edu-api';
-import { MiddleRoomApi } from '../../services/middle-room-api';
+import { InvitationEnum, MiddleRoomApi } from '../../services/middle-room-api';
 import { Mutex } from './../../utils/mutex';
 import uuidv4 from 'uuid/v4';
 import { EduAudioSourceType, EduTextMessage, EduSceneType, EduClassroom } from './../../sdk/education/interfaces/index.d';
@@ -41,8 +41,14 @@ const genStudentStreams = (num: number) => {
 }
 
 type VideoMarqueeItem = {
-  // mainStream: EduMediaStream | null
+  mainStream: EduMediaStream | null
   studentStreams: EduMediaStream[]
+}
+
+type ProcessType = {
+  maxWait: number
+  maxAccept: number
+  timeout: number
 }
 
 type MiddleRoomProperties = {
@@ -57,6 +63,7 @@ type MiddleRoomProperties = {
     g1?: string,
     g2?: string,
   }
+  processes: Record<string, ProcessType>,
 }
 
 type MiddleRoomSchema = Partial<MiddleRoomProperties>
@@ -98,6 +105,7 @@ export type EduMediaStream = {
   audio: boolean
   video: boolean
   showControls: boolean
+  showMediaBtn?: boolean
 }
 
 export class MiddleRoomStore extends SimpleInterval {
@@ -105,6 +113,9 @@ export class MiddleRoomStore extends SimpleInterval {
     super()
     this.appStore = appStore
   }
+
+  @observable
+  quit: boolean = false
 
   static resolutions: any[] = [
     {
@@ -136,6 +147,22 @@ export class MiddleRoomStore extends SimpleInterval {
     return this.appStore.extensionStore;
   }
 
+  @computed 
+  get canOperator() {
+    if (this.teacherExists) {
+      const classStarted = this.sceneStore.classState === 1
+      if (classStarted) {
+        return true
+      }
+      return false
+    }
+    return false
+  }
+
+  @computed
+  get teacherExists(): boolean {
+    return !!this.sceneStore.userList.find((it) => it.role === 'host')
+  }
 
   @computed
   get userUuid(): string {
@@ -162,6 +189,7 @@ export class MiddleRoomStore extends SimpleInterval {
     this.messages = []
     this.notice = undefined
     this.groupingSolution = 0
+    this.quit = false
   }
 
 
@@ -189,31 +217,21 @@ export class MiddleRoomStore extends SimpleInterval {
   notice?: any = undefined
 
   @action
-  showNotice(type: PeerInviteEnum, userUuid: string, userName: string) {
+  showNotice(type: number, userUuid: string, userName: string) {
     BizLogger.info(`type: ${type}, userUuid: ${userUuid}`)
     let text = t('toast.you_have_a_default_message')
     switch(type) {
-      case PeerInviteEnum.teacherAccept: {
-        text = t('middle_room.the_teacher_accepted')
-        break;
-      }
-      case PeerInviteEnum.studentApply: {
+      case InvitationEnum.Apply: {
         text = t('middle_room.student_hands_up', {reason: userName})
         break;
       }
-      case PeerInviteEnum.teacherStop: {
-        text = t('middle_room.end_covideo_by_teacher')
+      case InvitationEnum.Cancel: {
+        text = t('middle_room.student_hands_down', {reason: userName})
         break;
       }
-      case PeerInviteEnum.studentStop:
-      case PeerInviteEnum.studentCancel: 
-        text = t('middle_room.end_covideo_by_self')
-        this.removeDialogBy(userUuid)
+      case InvitationEnum.Accept: 
+        text = t('middle_room.the_teacher_accepted')
         break;
-      // case PeerInviteEnum.teacherReject: {
-      //   text = t('toast.the_teacher_refused')
-      //   break;
-      // }
     }
     this.notice = {
       reason: text,
@@ -246,14 +264,16 @@ export class MiddleRoomStore extends SimpleInterval {
   showDialog(userName: string, userUuid: any) {
     const isExists = this.appStore
       .uiStore
-      .dialogs.filter((it: DialogType) => it.dialog.userUuid)
-      .find((it: DialogType) => it.dialog.userUuid === userUuid)
+      .dialogs.filter((it: DialogType) => get(it.dialog, 'option.userUuid', ''))
+      .find((it: DialogType) => get(it.dialog, 'option.userUuid', '') === userUuid)
     if (isExists) {
       return
     }
     this.appStore.uiStore.showDialog({
       type: 'apply',
-      userUuid: userUuid,
+      option: {
+        userUuid,
+      },
       message: `${userName}` + t('icon.requests_to_connect_the_microphone')
     })
   }
@@ -261,8 +281,8 @@ export class MiddleRoomStore extends SimpleInterval {
   removeDialogBy(userUuid: any) {
     const target = this.appStore
     .uiStore
-    .dialogs.filter((it: DialogType) => it.dialog.userUuid)
-    .find((it: DialogType) => it.dialog.userUuid === userUuid)
+    .dialogs.filter((it: DialogType) => get(it.dialog, 'option.userUuid',''))
+    .find((it: DialogType) => get(it.dialog, 'option.userUuid','') === userUuid)
     if (target) {
       this.appStore.uiStore.removeDialog(target.id)
     }
@@ -315,6 +335,16 @@ export class MiddleRoomStore extends SimpleInterval {
             BizLogger.error(error)
           }
         })
+      })
+      // 监听本地用户是否被删除
+      roomManager.on('local-user-removed', async (evt: any) => {
+        const user = evt.user
+        if (this.roomInfo.userRole === 'student') {
+          BizLogger.info(`[demo] local-user-removed`, JSON.stringify(user))
+          this.appStore.uiStore.addToast(t('toast.kick_by_teacher'))
+          this.quit = true
+        }
+        // await this.leave()
       })
       // 本地流加入
       // roomManager.on('local-stream-added', (evt: any) => {
@@ -472,8 +502,8 @@ export class MiddleRoomStore extends SimpleInterval {
               const {action} = payload
               // const payload = msg.payload
               const {name, role, uuid} = payload.fromUser
-              this.showNotice(action as PeerInviteEnum, uuid, name)
-              if (action === PeerInviteEnum.studentApply) {
+              this.showNotice(action, uuid, name)
+              if (action === InvitationEnum.Apply) {
                 const userExists = this.extensionStore.applyUsers.find((user) => user.userUuid === uuid)
                 const user = this.roomManager?.data.userList.find(it => it.user.userUuid === uuid)
                 if (!userExists && user) {
@@ -481,23 +511,17 @@ export class MiddleRoomStore extends SimpleInterval {
                     userName: name,
                     userUuid: uuid,
                     streamUuid: user.streamUuid,
-                    userState: true
+                    state: true
                   })
                 }
                 this.uiStore.showShakeHands()
               }
-              if (action === PeerInviteEnum.teacherStop) {
-                try {
-                  await this.sceneStore.closeCamera()
-                  await this.sceneStore.closeMicrophone()
-                  this.appStore.uiStore.addToast(t('toast.co_video_close_success'))
-                } catch (err) {
-                  this.appStore.uiStore.addToast(t('toast.co_video_close_failed'))
-                  BizLogger.warn(err)
-                }
+              if (action === InvitationEnum.Cancel) {
+                const applyUsers = this.extensionStore.applyUsers.filter((it) => it.userUuid !== uuid)
+                this.extensionStore.applyUsers = applyUsers
               }
               if (action === PeerInviteEnum.teacherAccept 
-                && this.isBigClassStudent()) {
+                && this.isStudent()) {
                 try {
                   await this.sceneStore.prepareCamera()
                   await this.sceneStore.prepareMicrophone()
@@ -517,45 +541,6 @@ export class MiddleRoomStore extends SimpleInterval {
                 this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
               }
             }
-            // if (msg) {
-            //   const {cmd, data} = msg
-            //   const {type, userName} = data
-            //   BizLogger.info("data", data)
-            //   this.showNotice(type as PeerInviteEnum, fromUserUuid)
-            //   if (type === PeerInviteEnum.studentApply) {
-            //     this.showDialog(fromUserName, fromUserUuid)
-            //   }
-            //   if (type === PeerInviteEnum.teacherStop) {
-            //     try {
-            //       await this.sceneStore.closeCamera()
-            //       await this.sceneStore.closeMicrophone()
-            //       this.appStore.uiStore.addToast(t('toast.co_video_close_success'))
-            //     } catch (err) {
-            //       this.appStore.uiStore.addToast(t('toast.co_video_close_failed'))
-            //       BizLogger.warn(err)
-            //     }
-            //   }
-            //   if (type === PeerInviteEnum.teacherAccept 
-            //     && this.isBigClassStudent()) {
-            //     try {
-            //       await this.sceneStore.prepareCamera()
-            //       await this.sceneStore.prepareMicrophone()
-            //       BizLogger.info("propertys ", this.sceneStore._hasCamera, this.sceneStore._hasMicrophone)
-            //       if (this.sceneStore._hasCamera) {
-            //         await this.sceneStore.openCamera()
-            //       }
-      
-            //       if (this.sceneStore._hasMicrophone) {
-            //         BizLogger.info('open microphone')
-            //         await this.sceneStore.openMicrophone()
-            //       }
-            //     } catch (err) {
-            //       BizLogger.warn('published failed', err) 
-            //       throw err
-            //     }
-            //     this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
-            //   }
-            // }
           } catch (error) {
             BizLogger.error(`[demo] user-message async handler failed`)
             BizLogger.error(error)
@@ -567,6 +552,7 @@ export class MiddleRoomStore extends SimpleInterval {
         BizLogger.info("classroom-property-updated", classroom)
         // if (evt.reason === EduClassroomStateType.EduClassroomStateTypeRoomAttrs) {
           this.roomProperties = classroom.roomProperties
+          console.log("roomProperties >>>>>>> ", classroom.roomProperties)
           const record = get(classroom, 'roomProperties.record')
           if (record) {
             const state = record.state
@@ -602,22 +588,22 @@ export class MiddleRoomStore extends SimpleInterval {
             }
           }
           this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
-          // 中班功能
-          this.roomProperties = classroom.roomProperties
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
-
+          console.log('get groups***', groups)
+          console.log('get students***', students)
           let userGroups: UserGroup[] = []
           if (groups) {
             Object.keys(groups).forEach(groupUuid => {
               let group = groups[groupUuid]
               let userGroup: UserGroup = {
                 groupName: group.groupName,
-                groupUuid: groupUuid,
+                groupUuid: 'groupUuid' + groupUuid,
                 members: [],
               }
               group.members.forEach((stuUuid: string) => {
                 let info = students[stuUuid]
+                console.log('***info.reward', info)
                 userGroup.members.push({
                   userUuid: stuUuid,
                   userName: info.userName,
@@ -714,9 +700,11 @@ export class MiddleRoomStore extends SimpleInterval {
       })
   
       const localStreamData = roomManager.data.localStreamData
+
+      const localStreamExists = !!(+localStreamData.state)
   
       let canPublish = this.roomInfo.userRole === 'teacher' ||
-         localStreamData && !!(+localStreamData.state)
+         localStreamData && localStreamExists
   
       if (canPublish) {
   
@@ -728,8 +716,8 @@ export class MiddleRoomStore extends SimpleInterval {
           audioSourceType: EduAudioSourceType.mic,
           streamUuid: mainStream.streamUuid,
           streamName: '',
-          hasVideo: localStreamData && localStreamData.stream ? localStreamData.stream.hasVideo : true,
-          hasAudio: localStreamData && localStreamData.stream ? localStreamData.stream.hasAudio : true,
+          hasVideo: get(localStreamData, 'stream.hasVideo', true),
+          hasAudio: get(localStreamData, 'stream.hasAudio', true),
           userInfo: {} as EduUser
         })
         this.appStore.uiStore.addToast(t('toast.publish_business_flow_successfully'))
@@ -738,12 +726,12 @@ export class MiddleRoomStore extends SimpleInterval {
           await this.sceneStore.prepareCamera()
           await this.sceneStore.prepareMicrophone()
           if (this.sceneStore._cameraEduStream) {
-            if (this.sceneStore._cameraEduStream.hasVideo) {
+            if (this.sceneStore._cameraEduStream && this.sceneStore._cameraEduStream.hasVideo) {
               await this.sceneStore.openCamera()
             } else {
               await this.sceneStore.closeCamera()
             }
-            if (this.sceneStore._cameraEduStream.hasAudio) {
+            if (this.sceneStore._cameraEduStream && this.sceneStore._cameraEduStream.hasAudio) {
               BizLogger.info('open microphone')
               await this.sceneStore.openMicrophone()
             } else {
@@ -801,6 +789,7 @@ export class MiddleRoomStore extends SimpleInterval {
   get allStudentStreams() {
     const allStudents: VideoMarqueeItem = {
       studentStreams: [],
+      mainStream: null
     }
 
     const userIdsNotInPkList = this.sceneStore
@@ -993,6 +982,34 @@ export class MiddleRoomStore extends SimpleInterval {
     await this.updateRoomBatchProperties({ properties, cause })
   }
 
+  @computed
+  get groups() {
+    const firstGroup: VideoMarqueeItem = {
+      mainStream: null,
+      studentStreams: [],
+    }
+
+    // TODO: only need in PRD PK mode. Still not implemented
+    const secondGroup: VideoMarqueeItem = {
+      mainStream: null,
+      studentStreams: [],
+    }
+
+    const userIds = this.sceneStore.userList.map((u) => u.userUuid)
+
+    const streams = this.sceneStore.studentStreams.filter((stream) => userIds.includes(stream.userUuid))
+    firstGroup.studentStreams = firstGroup.studentStreams.concat(streams)
+    firstGroup.studentStreams = firstGroup.studentStreams.map((stream) => ({
+      ...stream,
+      // showStar: true,
+      showControls: false,
+      showHover: this.roomInfo.userRole === 'teacher',
+      showMediaBtn: true
+    }))
+
+    return [firstGroup, secondGroup]
+  }
+
   // @observable
   // groups: any[] = [
   //   {
@@ -1007,9 +1024,22 @@ export class MiddleRoomStore extends SimpleInterval {
   //   }
   // ]
 
+  getUserReward(userUuid: string) {
+    return this.roomStudentUserList.find((it) => it.userUuid === userUuid)
+  }
+
   @action
   async sendReward(userUuid: string, reward: number) {
-
+    await this.roomManager.userService.updateRoomBatchProperties(
+      {
+        properties: {
+          [`students.${userUuid}.reward`]: reward+1,
+        },
+        cause: {
+          cmd: `${MiddleRoomPropertiesChangeCause.studentRewardStateChanged}`
+        }
+      }
+    )
   }
 
   @action
@@ -1043,6 +1073,78 @@ export class MiddleRoomStore extends SimpleInterval {
     students: {},
     teachers: {},
     interactOutGroups: {},
+    processes: {}
+  }
+
+  @computed
+  get studentsList() {
+    const showControls = this.roomInfo.userRole !== 'student'
+    const streams = this.sceneStore.studentStreams
+    const streamUserIds = streams.map(stream => stream.userUuid)
+    const userList = this.roomStudentUserList
+      .filter(
+        (e => 
+          streamUserIds
+          .indexOf(e.userUuid) === -1
+        )
+      )
+      .map((it) => ({
+        ...it,
+        account: it.userName,
+        audio: false,
+        video: false,
+        showControls: showControls,
+        renderer: undefined,
+        local: it.userUuid === this.roomInfo.userUuid,
+      }))
+    return streams
+    .concat(userList)
+    .filter((it: any) => {
+      const userList = this.sceneStore.userList.find((user) => user.userUuid === it.userUuid)
+      if (userList) {
+        return true
+      } else {
+        return false
+      }
+    })
+    .map((it: any) => ({
+      ...it,
+      // offline: this.sceneStore.userList.find((user) => user.userUuid === it.userUuid) ? false : true
+    }))
+  }
+
+  @computed
+  get rawStudentsList() {
+    const showControls = this.roomInfo.userRole !== 'student'
+    const streams = this.sceneStore.studentStreams
+    const streamUserIds = streams.map(stream => stream.userUuid)
+    const userList = this.roomStudentUserList
+      .filter(
+        (e => 
+          streamUserIds
+          .indexOf(e.userUuid) === -1
+        )
+      )
+      .map((it) => ({
+        ...it,
+        account: it.userName,
+        audio: false,
+        video: false,
+        showControls: showControls,
+        renderer: undefined,
+        local: it.userUuid === this.roomInfo.userUuid,
+      }))
+    return streams
+    .concat(userList)
+    .map((it) => ({
+      ...it,
+      offline: this.sceneStore.userList.find((user) => user.userUuid === it.userUuid) ? false : true
+    }))
+  }
+
+  @computed
+  get studentTotal(): number {
+    return this.roomStudentUserList.length
   }
 
   @computed
@@ -1051,7 +1153,9 @@ export class MiddleRoomStore extends SimpleInterval {
     const students = Object.keys(studentRecords).map((uuid) => ({
       userUuid: uuid,
       streamUuid: studentRecords[uuid].streamUuid,
-      userName: studentRecords[uuid].userName
+      userName: studentRecords[uuid].userName,
+      account: studentRecords[uuid].userName,
+      reward: studentRecords[uuid].reward,
     }))
     return students
   }
@@ -1117,9 +1221,9 @@ export class MiddleRoomStore extends SimpleInterval {
     }
   }
 
-  isBigClassStudent(): boolean {
+  isStudent(): boolean {
     const userRole = this.roomInfo.userRole
-    return +this.roomInfo.roomType === 2 && userRole === 'student'
+    return userRole === 'student'
   }
 
   get eduManager() {
@@ -1166,5 +1270,90 @@ export class MiddleRoomStore extends SimpleInterval {
   @action
   updateGroupItemList(type: number, count: number) {
 
+  }
+
+  private getMediaStreamBy(userUuid: string) {
+    return this.rawStudentsList.find((it: any) => it.userUuid === userUuid)
+  }
+
+  async unmuteVideo(userUuid: string, isLocal: boolean) {
+    BizLogger.info("unmuteVideo userUuid", userUuid, " isLocal ", isLocal)
+    if (isLocal) {
+      await this.sceneStore.unmuteLocalCamera()
+    } else {
+      const stream = this.getMediaStreamBy(userUuid)
+      if (!stream) {
+        return BizLogger.warn("unmuteVideo userUuid stream not found")
+      }
+      await this.batchUpsertStream([{
+        userUuid: stream.userUuid,
+        streamUuid: stream.streamUuid,
+        streamName: stream.userUuid + 'stream',
+        videoSourceType: EduVideoSourceType.camera,
+        audioSourceType: EduAudioSourceType.mic,
+        videoState: 1,
+        audioState: +stream.audio,
+      }])
+    }
+  }
+  async muteVideo(userUuid: string, isLocal: boolean) {
+    BizLogger.info("muteVideo userUuid", userUuid, " isLocal ", isLocal)
+    if (isLocal) {
+      await this.sceneStore.muteLocalCamera()
+    } else {
+      const stream = this.getMediaStreamBy(userUuid)
+      if (!stream) {
+        return BizLogger.warn("muteVideo userUuid stream not found")
+      }
+      await this.batchUpsertStream([{
+        userUuid: stream.userUuid,
+        streamUuid: stream.streamUuid,
+        streamName: stream.userUuid + 'stream',
+        videoSourceType: EduVideoSourceType.camera,
+        audioSourceType: EduAudioSourceType.mic,
+        videoState: 0,
+        audioState: +stream.audio,
+      }])
+    }
+  }
+  async unmuteAudio(userUuid: string, isLocal: boolean) {
+    BizLogger.info("unmuteAudio userUuid", userUuid, " isLocal ", isLocal)
+    if (isLocal) {
+      await this.sceneStore.unmuteLocalMicrophone()
+    } else {
+      const stream = this.getMediaStreamBy(userUuid)
+      if (!stream) {
+        return BizLogger.warn("unmuteAudio userUuid stream not found")
+      }
+      await this.batchUpsertStream([{
+        userUuid: stream.userUuid,
+        streamUuid: stream.streamUuid,
+        streamName: stream.userUuid + 'stream',
+        videoSourceType: EduVideoSourceType.camera,
+        audioSourceType: EduAudioSourceType.mic,
+        videoState: +stream.video,
+        audioState: 1,
+      }])
+    }
+  }
+  async muteAudio(userUuid: string, isLocal: boolean) {
+    BizLogger.info("muteAudio userUuid", userUuid, " isLocal ", isLocal)
+    if (isLocal) {
+      await this.sceneStore.muteLocalMicrophone()
+    } else {
+      const stream = this.getMediaStreamBy(userUuid)
+      if (!stream) {
+        return BizLogger.warn("unmuteAudio userUuid stream not found")
+      }
+      await this.batchUpsertStream([{
+        userUuid: stream.userUuid,
+        streamUuid: stream.streamUuid,
+        streamName: stream.userUuid + 'stream',
+        videoSourceType: EduVideoSourceType.camera,
+        audioSourceType: EduAudioSourceType.mic,
+        videoState: +stream.video,
+        audioState: 0,
+      }])
+    }
   }
 }

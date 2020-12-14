@@ -5,6 +5,7 @@ const en = {
   "extension": {
     "grouping": "Group",
     "hands_up": "CoVideo",
+    "hands_up_timeout": "Hand up end, time over max wait seconds",
   },
   "switch": {
     "enable_auto_hands_up": "HandsUp CoVideo",
@@ -80,6 +81,7 @@ const en = {
     'unlocked_board': 'The whiteboard already unlocked',
   },
   'toast': {
+    'kick_by_teacher': 'Kicked by teacher',
     'upload_log_failure': 'Upload Log Failure，ErrorName: {reason}，see more details in devtool',
     'show_log_id': `Report your log ID: {reason}`,
     'api_login_failured': 'Join Failured, Reason: {reason}',
@@ -211,7 +213,7 @@ const en = {
     '1v1': 'One to One Classroom',
     'mini_class': 'Small Classroom',
     'large_class': 'Lecture Hall',
-    'middle_class': 'Middle Class',
+    'middle_class': 'Medium Classroom',
     'super_mini_class': 'Super Small Classroom',
     'missing_room_name': 'missing room name',
     'missing_your_name': 'missing your name',
@@ -253,12 +255,15 @@ const en = {
   },
   "middle_room": {
     'student_hands_up': `"{reason}" hands up'`,
+    'student_hands_down': `"{reason}" hands down`,
     'the_teacher_accepted': `Teacher accepted your apply`,
     'end_covideo_by_teacher': 'CoVideo end by teacher',
     'end_covideo_by_self': 'CoVideo end by you',
   },
   'course_recording': 'course recording',
   'build_version': `build version: ${build_version}`,
+  'cancel_confirm': 'Are you sure to ignore？',
+  'allow_confirm': 'Are you sure to accept',
 }
 
 export default en;

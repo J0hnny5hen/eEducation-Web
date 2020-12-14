@@ -110,7 +110,7 @@ export const StudentChatBoard = observer(() => {
       <div className={`student-container ${breakoutRoomStore.activeTab !== 'first' ? '' : 'hide'}`}>
         <StudentList
           userRole={userRole}
-          studentStreams={studentStreams}
+          students={studentStreams}
           grantUsers={grantUsers}
           handleClick={handleClick}
           isMiddleClassRoom={false}

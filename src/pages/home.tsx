@@ -30,7 +30,6 @@ type SessionInfo = {
   role: string
 }
 
-// let userName1 = 'user' + Math.ceil(Math.random()*10) + Math.ceil(Math.random()*10)
 const defaultState: SessionInfo = {
   roomName: '',
   roomType: 0,

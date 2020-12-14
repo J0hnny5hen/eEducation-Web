@@ -344,4 +344,21 @@ export class UIStore {
     this.menuVisible = !this.menuVisible
   }
 
+  @observable
+  cancel?: CallableFunction
+
+  @observable
+  action: any
+
+  @observable
+  nextLocation: any
+
+  @action
+  unblock() {
+    if (this.cancel) {
+      this.cancel()
+      this.cancel = undefined
+    }
+  }
+
 }

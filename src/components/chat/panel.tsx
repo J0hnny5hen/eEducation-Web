@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import {Message, RoomMessage} from './message';
 import { Input } from '@material-ui/core';
 import {CustomButton} from '../custom-button';
@@ -22,6 +22,25 @@ export interface ChatPanelProps {
 const regexPattern = /^\s+/;
 
 const truncateBlank: (m: string) => string = (message: string) => message.replace(regexPattern, '');
+
+// *** ouredu --	Send link via chat
+
+// Determines whether an HTTP url link is included.
+const isUrl = (str:any) => {
+  return str.includes('http') || str.includes('https')
+}
+// Convert HTTP urls to links.
+const chatLinkShift = (str: string) => {
+  let re = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g
+  let restr: any = str.match(re)
+  if(restr === null) {
+    return str
+  }
+  for(let i = 0; i < restr.length; i++) {
+    str = str.replace(restr[i], `<a href=${restr[i]}>${restr[i]}</a>`)
+  }
+  return str
+}
 
 export const ChatPanel: React.FC<ChatPanelProps> = observer(({
   messages,
@@ -59,7 +78,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = observer(({
               <RoomMessage key={key} roomName={item.fromRoomName} role={item.role} nickname={item.account} content={item.text} link={item.link} sender={item.sender} />
             )) :
             messages.map((item: ChatMessage, key: number) => (
-              <Message key={key} nickname={item.account} content={item.text} role={item.role} link={item.link} sender={item.sender} />
+              <Message key={key} nickname={item.account} isUrl={isUrl(item.text)} content={chatLinkShift(item.text)} role={item.role} link={item.link} sender={item.sender} />
             ))
           }
         </div>   

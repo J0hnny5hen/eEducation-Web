@@ -1,5 +1,6 @@
 export class BizLogger {
 
+  // recommend use enable true
   static enable: boolean = true
 
   private static get currentTime(): string {

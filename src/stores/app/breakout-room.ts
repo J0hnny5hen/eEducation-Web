@@ -410,11 +410,11 @@ export class BreakoutRoomStore extends SimpleInterval {
       this._cameraRenderer = this.mediaService.cameraRenderer
       this.cameraLabel = this.mediaService.getCameraLabel()
       this._cameraId = this.cameraId
-      BizLogger.info('[demo] action in openCamera >>> openCamera')
+      BizLogger.info('[demo] action in openCamera ### openCamera')
       this.unLockCamera()
     } catch (err) {
       this.unLockCamera()
-      BizLogger.info('[demo] action in openCamera >>> openCamera')
+      BizLogger.info('[demo] action in openCamera ### openCamera')
       BizLogger.warn(err)
       throw err
     }
@@ -520,12 +520,12 @@ export class BreakoutRoomStore extends SimpleInterval {
       await this.mediaService.openMicrophone({deviceId})
       this._microphoneTrack = this.mediaService.microphoneTrack
       this.microphoneLabel = this.mediaService.getMicrophoneLabel()
-      BizLogger.info('[breakout-demo] action in openMicrophone >>> openMicrophone')
+      BizLogger.info('[breakout-demo] action in openMicrophone ### openMicrophone')
       this._microphoneId = this.microphoneId
       this.unLockMicrophone()
     } catch (err) {
       this.unLockMicrophone()
-      BizLogger.info('[demo] action in openMicrophone >>> openMicrophone')
+      BizLogger.info('[demo] action in openMicrophone ### openMicrophone')
       BizLogger.warn(err)
       throw err
     }
@@ -2526,8 +2526,8 @@ export class BreakoutRoomStore extends SimpleInterval {
   removeDialogBy(userUuid: any) {
     const target = this.appStore
     .uiStore
-    .dialogs.filter((it: DialogType) => it.dialog.userUuid)
-    .find((it: DialogType) => it.dialog.userUuid === userUuid)
+    .dialogs.filter((it: DialogType) => it.dialog.option)
+    .find((it: DialogType) => it.dialog.option === userUuid)
     if (target) {
       this.appStore.uiStore.removeDialog(target.id)
     }

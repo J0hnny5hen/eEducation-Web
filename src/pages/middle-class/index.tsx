@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import {NavController} from '@/components/nav';
 import NativeSharedWindow from '@/components/native-shared-window';
@@ -46,26 +46,22 @@ const RoomController = observer(({children}: any) => {
 
   const history = useHistory()
 
-  // TODO: need uncomment
+  useEffect(() => {
+    if (middleRoomStore.quit) {
+      middleRoomStore.leave().then(
+        () => {
+          uiStore.unblock()
+          history.replace('/')
+        }
+      ).catch(BizLogger.warn)
+    }
+  }, [middleRoomStore.quit, history, uiStore.unblock])
+
   useEffect(() => {
     if (!appStore.userRole) {
       history.push('/')
       return
     }
-
-    window.history.pushState(null, document.title, window.location.href);
-
-    const handlePopState = (evt: any) => {
-      window.history.pushState(null, document.title, null);
-      if (middleRoomStore.joined && !uiStore.hasDialog('exitRoom')) {
-        uiStore.showDialog({
-          type: 'exitRoom',
-          message: t('icon.exit-room'),
-        })
-      }
-    }
-
-    window.addEventListener('popstate', handlePopState, false)
 
     let pathList = location.pathname.split('/')
     let path = pathList[pathList.length - 1]
@@ -77,11 +73,6 @@ const RoomController = observer(({children}: any) => {
       BizLogger.warn(err.msg)
       uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
     })
-
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState, false)
-    }
   }, [])
   
   let pathList = location.pathname.split('/')

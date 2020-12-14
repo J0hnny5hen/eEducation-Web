@@ -3,7 +3,7 @@ import { APP_ID, AUTHORIZATION } from "@/utils/config";
 import { HttpClient } from "@/sdk/education/core/utils/http-client";
 
 export enum InvitationEnum {
-  Apply =  1,
+  Apply = 1,
   Invite = 2,
   Accept = 3,
   Reject = 4,
@@ -129,8 +129,8 @@ export class MiddleRoomApi {
       full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/process/${this.room.uuid}`,
       method: 'PUT',
       data: {
-        limit: 4,
-        timeout: 3,
+        maxWait: 4,
+        timeout: 30,
       },
       token: this.userToken
     })
