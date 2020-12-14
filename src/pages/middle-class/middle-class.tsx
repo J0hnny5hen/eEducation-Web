@@ -99,7 +99,8 @@ export const MiddleClass = observer(() => {
             if (target.audio) {
               await middleRoomStore.muteAudio(id, isLocal(id))
             } else {
-              await middleRoomStore.unmuteAudio(id, isLocal(id))
+              await middleRoomStore.sendUnmuteApply('audio', id)
+              // await middleRoomStore.unmuteAudio(id, isLocal(id))
             }
           }
           break
@@ -109,7 +110,8 @@ export const MiddleClass = observer(() => {
             if (target.video) {
               await middleRoomStore.muteVideo(id, isLocal(id))
             } else {
-              await middleRoomStore.unmuteVideo(id, isLocal(id))
+              await middleRoomStore.sendUnmuteApply('video', id)
+              // await middleRoomStore.unmuteVideo(id, isLocal(id))
             }
           }
           break

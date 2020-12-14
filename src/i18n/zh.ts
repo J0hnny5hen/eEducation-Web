@@ -34,6 +34,8 @@ const zhCN: any = {
     "exit-room": "退出教室",
     "lang-select": "语言切换",
     "requests_to_connect_the_microphone": '申请连接麦克风',
+    "apply_unmute_video": "申请打开摄像头",
+    "apply_unmute_audio": "申请打开麦克风",
   },
   'doc_center': '文档中心',
   'upload_picture': '上传图片',

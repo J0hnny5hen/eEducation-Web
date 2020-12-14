@@ -358,7 +358,8 @@ export class EduUserService extends EventEmitter implements IEduUserService {
       audioSourceType: this.localStream.stream.audioSourceType,
       videoState: curVideoState,
       audioState: curAudioState,
-      streamName: this.localStream.stream.streamName
+      streamName: this.localStream.stream.streamName,
+      generateToken: false
     })
     // this.localStream.updateMediaState({
     //   hasVideo: curVideoState,
