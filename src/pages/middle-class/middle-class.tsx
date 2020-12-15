@@ -107,7 +107,7 @@ export const MiddleClass = observer(() => {
           {
             extensionStore.controlGrouping ?
             <MiddleGrouping dataList={roomStudentUserList} 
-            studentTotal={Object.keys(middleRoomStore.roomProperties.students).length}
+            studentTotal={middleRoomStore && middleRoomStore.studentSum}
             onSave={(groups) => {middleRoomStore.groupOnSave(groups)}} 
             onRemove={middleRoomStore.removeGroup} />
             : null
@@ -178,6 +178,7 @@ export const MiddleClass = observer(() => {
               { userGroups.map((group, index) => (
                   <MiddleGroupCard key={index} 
                     group={group}
+                    isTeacher={middleRoomStore.roomInfo.userRole === 'teacher'}
                     platform={async () => await middleRoomStore.clickPlatform(group)} 
                     addStar={() => middleRoomStore.addGroupStar(group)}
                     controlMicrophone={async (control) => {

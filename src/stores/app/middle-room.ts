@@ -1135,6 +1135,15 @@ export class MiddleRoomStore extends SimpleInterval {
     return this.appStore.roomInfo
   }
 
+  @computed
+  get studentSum() {
+    if(this.roomProperties.students) {
+      return Object.keys(this.roomProperties.students).length
+    }
+    return 0
+  }
+
+
   @action
   async leave() {
     try {
