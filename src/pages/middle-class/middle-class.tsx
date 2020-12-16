@@ -212,7 +212,7 @@ export const MiddleClass = observer(() => {
                     group={group}
                     isTeacher={middleRoomStore.roomInfo.userRole === 'teacher'}
                     platform={async () => await middleRoomStore.clickPlatform(group)} 
-                    addStar={() => middleRoomStore.addGroupStar(group)}
+                    addStar={async () => await middleRoomStore.addGroupStar(group)}
                     controlMicrophone={async (control) => {
                       await middleRoomStore.groupControlMicrophone(group, control)}}>
                   </MiddleGroupCard>

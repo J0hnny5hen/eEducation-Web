@@ -588,6 +588,8 @@ export class MiddleRoomStore extends SimpleInterval {
             }
           }
           this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
+          // 中班功能
+          this.roomProperties = classroom.roomProperties
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
           let userGroups: UserGroup[] = []
@@ -799,7 +801,8 @@ export class MiddleRoomStore extends SimpleInterval {
         ...stream,
         showStar: true,
         showControls: false,
-        showHover: this.roomInfo.userRole === 'teacher'
+        showHover: this.roomInfo.userRole === 'teacher',
+        rewardNum: this.getUserReward(stream.userUuid)
       }))
     }
 
@@ -1020,7 +1023,11 @@ export class MiddleRoomStore extends SimpleInterval {
   // ]
 
   getUserReward(userUuid: string) {
-    return this.roomStudentUserList.find((it) => it.userUuid === userUuid)
+    const user = this.roomStudentUserList.find((it) => it.userUuid === userUuid)
+    if (user) {
+      return user.reward
+    }
+    return 0
   }
 
   @action
