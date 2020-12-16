@@ -179,3 +179,58 @@
 .platform-room {
   margin-left: 10px;
 }
+
+.countdown-dialog {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  // display: flex;
+  // justify-content: center;
+  // align-items: center;
+  width: 260px;
+  height: 150px;
+  background: #FFFFFF;
+  box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border: 1px solid #DBE2E5;
+  .countdown {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-40%, -50%);
+    font-size: 25px;
+    // display: flex;
+    // justify-content: center;
+    // align-items: center;
+  }
+  .btn {
+    display: flex;
+    justify-content: center;
+    margin-top: 70px;
+    .btn-cancel {
+      margin: 10px;
+      width: 98px;
+      height: 34px;
+      background: #FFFFFF;
+      border-radius: 18px;
+      border: 1px solid #DBE2E5;
+      font-size: 14px;
+      font-family: PingFangSC-Regular, PingFang SC;
+      font-weight: 400;
+      color: #44A2FC;
+    }
+    .btn-sure {
+      margin: 10px;
+      width: 98px;
+      height: 34px;
+      background: #44A2FC;
+      border-radius: 18px;
+      border: 1px solid #DBE2E5;
+      font-size: 14px;
+      font-family: PingFangSC-Regular, PingFang SC;
+      font-weight: 400;
+      color: #FFFFFF;
+    }
+  }
+}

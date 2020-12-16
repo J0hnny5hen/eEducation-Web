@@ -63,7 +63,11 @@ export const MiddleClass = observer(() => {
   const [chat, setChat] = useState<string>('')
   // const [showGroupCard, setShowGroupCard] = useState<boolean>(false)
   const [alreadyPlatform, setAlreadyPlatform] = useState<boolean>(false)
-  const [starGroup, setStarGroup] = useState<number>(0)
+  // 控制显示倒计时弹窗 ***
+  const [showCountdown, setShowCountdown] = useState<boolean>(false)
+  const [sureUnmute, setSureUnmute] = useState<boolean>(false)
+  const [countNum, setCountNum] = useState<number>(10)
+  const [stuId, setStuId] = useState<string>('')
   
   const userRole = middleRoomStore.roomInfo.userRole
   const boardStore = useBoardStore()
@@ -73,9 +77,40 @@ export const MiddleClass = observer(() => {
     await middleRoomStore.sendMessage(chat)
     setChat('')
   }
+  
+  console.log('**role', middleRoomStore.roomInfo.userRole)
+
+  const clickStartCountdown = (count: number) => {
+    setShowCountdown(true)
+    setCountNum(count)
+    console.log('click')
+    let timer: any
+    timer = setInterval(() => {
+      count--
+      setCountNum(count)
+      console.log('***countNum', countNum)
+      if(count < 0) {
+        clearTimeout(timer)
+        setShowCountdown(false)   
+        console.log('***倒计时结束')
+      }
+    }, 1000)
+  }
+
+  const clickCancel = function() {
+    setShowCountdown(false)
+  }
+
+  const clickSure = async (id: string) => {
+    console.log('***click 开启视频')
+    await middleRoomStore.unmuteVideo(id, isLocal(id))
+    setShowCountdown(false)
+  } 
+
+  const isLocal = (userUuid: string) => sceneStore.roomInfo.userUuid === userUuid
 
   const handleClick = useCallback(async (evt: any, id: string, type: string) => {
-    const isLocal = (userUuid: string) => sceneStore.roomInfo.userUuid === userUuid
+    
     if (sceneStore.roomInfo.userRole === 'teacher' 
     // || isLocal(id)
     )  {
@@ -107,9 +142,11 @@ export const MiddleClass = observer(() => {
         case 'video': {
           if (target) {
             if (target.video) {
+              console.log('***click 关闭视频 无需请求学生')
               await middleRoomStore.muteVideo(id, isLocal(id))
             } else {
-              await middleRoomStore.unmuteVideo(id, isLocal(id))
+              setStuId(id)
+              clickStartCountdown(10)
             }
           }
           break
@@ -248,6 +285,16 @@ export const MiddleClass = observer(() => {
             <CustomCard />
             : null
           }
+          {
+            middleRoomStore.roomInfo.userRole === 'student' && showCountdown ?
+            <div className="countdown-dialog">
+              <div className="countdown">{countNum}</div>
+              <div className="btn">
+                <button className="btn-cancel" onClick={clickCancel}>cancel</button>
+                <button className="btn-sure" onClick={() => clickSure(stuId)}>sure</button>
+              </div>
+            </div> : null
+          } 
           <div className={`interactive ${middleRoomStore.roomInfo.userRole}`}>
             {middleRoomStore.roomInfo.userRole === 'teacher' && middleRoomStore.notice ?
               <ControlItem name={middleRoomStore.notice.reason}

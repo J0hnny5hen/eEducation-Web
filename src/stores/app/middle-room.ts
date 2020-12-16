@@ -586,8 +586,7 @@ export class MiddleRoomStore extends SimpleInterval {
           this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
-          console.log('get groups***', groups)
-          console.log('get students***', students)
+          
           let userGroups: UserGroup[] = []
           if (groups) {
             Object.keys(groups).forEach(groupUuid => {
@@ -599,7 +598,7 @@ export class MiddleRoomStore extends SimpleInterval {
               }
               group.members.forEach((stuUuid: string) => {
                 let info = students[stuUuid]
-                console.log('***info.reward', info)
+                
                 userGroup.members.push({
                   userUuid: stuUuid,
                   userName: info.userName,
@@ -665,7 +664,7 @@ export class MiddleRoomStore extends SimpleInterval {
             streamUuid: streamUuid,
           }
           let cause = { cmd: "401" }
-          console.log('****propertiesStu', properties)
+          
           await this.updateRoomBatchProperties({ properties, cause })
         }
       }
