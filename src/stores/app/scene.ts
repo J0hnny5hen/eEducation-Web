@@ -345,7 +345,15 @@ export class SceneStore extends SimpleInterval {
       await this.closeCamera()
       this.unLockCamera()
     }
-    await this.roomManager?.userService.updateMainStreamState({'videoState': false})
+    const online = get(this.roomManager, 'userService.localStream.state', 0)
+    const mediaState: any = online ? {
+      'videoState': false
+    } : {
+      'videoState': false,
+      'audioState': false
+    }
+    console.log(" muteLocalCamera ", mediaState)
+    await this.roomManager?.userService.updateMainStreamState(mediaState)
   }
 
   @action 
@@ -355,7 +363,15 @@ export class SceneStore extends SimpleInterval {
       return BizLogger.warn('[demo] [mic lock] unmuteLocalCamera')
     }
     await this.openCamera()
-    await this.roomManager?.userService.updateMainStreamState({'videoState': true})
+    const online = get(this.roomManager, 'userService.localStream.state', 0)
+    const mediaState: any = online ? {
+      'videoState': true
+    } : {
+      'videoState': true,
+      'audioState': false
+    }
+    console.log(" unmuteLocalCamera ", mediaState)
+    await this.roomManager.userService.updateMainStreamState(mediaState)
   }
 
   @action
@@ -366,7 +382,15 @@ export class SceneStore extends SimpleInterval {
     }
     await this.closeMicrophone()
     this.unLockMicrophone()
-    await this.roomManager?.userService.updateMainStreamState({'audioState': false})
+    const online = get(this.roomManager, 'userService.localStream.state', 0)
+    const mediaState: any = online ? {
+      'audioState': false
+    } : {
+      'audioState': false,
+      'videoState': false
+    }
+    console.log(" muteLocalMicrophone ", mediaState)
+    await this.roomManager?.userService.updateMainStreamState(mediaState)
   }
 
   @action 
@@ -376,7 +400,15 @@ export class SceneStore extends SimpleInterval {
       return BizLogger.warn('[demo] [mic lock] unmuteLocalMicrophone')
     }
     await this.openMicrophone()
-    await this.roomManager?.userService.updateMainStreamState({'audioState': true})
+    const online = get(this.roomManager, 'userService.localStream.state', 0)
+    const mediaState: any = online ? {
+      'audioState': true
+    } : {
+      'audioState': true,
+      'videoState': false
+    }
+    console.log(" unmuteLocalMicrophone ", mediaState)
+    await this.roomManager?.userService.updateMainStreamState(mediaState)
   }
 
   @action

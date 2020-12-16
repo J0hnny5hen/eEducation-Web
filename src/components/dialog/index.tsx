@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {CustomButton} from '../custom-button';
 import {Dialog, DialogContent, DialogContentText} from '@material-ui/core';
 
@@ -46,6 +46,45 @@ function RoomDialog(
     uiStore.removeDialog(dialogId)
   }
 
+  const numRef = useRef<number>(10)
+
+  const [num, setNum] = useState<number>(numRef.current)
+
+  const startClock = useCallback((timer: any) => {
+    if (numRef.current > 0) {
+      numRef.current -= 1
+      // console.log(">>> startClock#num ", numRef.current)
+      setNum(numRef.current)
+    } else {
+      clearInterval(timer)
+    }
+  }, [numRef.current, setNum, uiStore, dialogId])
+
+  useEffect(() => {
+    if (num === 0) {
+      uiStore.removeDialog(dialogId)
+    }
+  }, [num])
+
+  const clock = useRef<any>(null)
+
+  useEffect(() => {
+    if (dialogMessage.type === 'unmuteApply') {
+      if (clock.current) {
+        return
+      }
+      clock.current = setInterval(() => {
+        startClock(clock.current)
+      }, 1000)
+    }
+  }, [dialogMessage.type, clock.current, startClock])
+
+  useEffect(() => {
+    return () => {
+      clock.current && clearInterval(clock.current)
+    }
+  }, [])
+
   return (
     <div>
       <Dialog
@@ -65,6 +104,7 @@ function RoomDialog(
             <CustomButton name={t("toast.confirm")} className="confirm" onClick={handleConfirm} color="primary" />
             <CustomButton name={t("toast.cancel")} className="cancel" onClick={handleClose} color="primary" />
           </div>
+          {dialogMessage.type === 'unmuteApply' ? <span>{num}</span> : null}
         </DialogContent>
       </Dialog>
     </div>

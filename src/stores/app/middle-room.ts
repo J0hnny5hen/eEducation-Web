@@ -327,10 +327,11 @@ export class MiddleRoomStore extends SimpleInterval {
   }
 
   showUnmuteApplyDialog(userName: string, userUuid: any, type: string) {
+    // TODO: uniq dialog by user uuid
     const isExists = this.appStore
       .uiStore
       .dialogs.filter((it: DialogType) => get(it.dialog, 'option.userUuid', ''))
-      .find((it: DialogType) => get(it.dialog, 'option.userUuid', '') === userUuid)
+      .find((it: DialogType) => get(it.dialog, 'option.userUuid', '') === userUuid && get(it.dialog, 'option.type') === type)
     if (isExists) {
       return
     }

@@ -639,6 +639,7 @@ export class EduClassroomDataController {
 
   private isMainStream(streamUuid: string): boolean {
     const mainStream = this._cachedLocalStreams['main']
+    console.log('is main stream')
     if (mainStream && mainStream.stream.streamUuid === streamUuid) {
       return true
     }
