@@ -78,21 +78,17 @@ export const MiddleClass = observer(() => {
     setChat('')
   }
   
-  console.log('**role', middleRoomStore.roomInfo.userRole)
 
   const clickStartCountdown = (count: number) => {
     setShowCountdown(true)
     setCountNum(count)
-    console.log('click')
     let timer: any
     timer = setInterval(() => {
       count--
       setCountNum(count)
-      console.log('***countNum', countNum)
       if(count < 0) {
         clearTimeout(timer)
         setShowCountdown(false)   
-        console.log('***倒计时结束')
       }
     }, 1000)
   }
@@ -102,7 +98,6 @@ export const MiddleClass = observer(() => {
   }
 
   const clickSure = async (id: string) => {
-    console.log('***click 开启视频')
     await middleRoomStore.unmuteVideo(id, isLocal(id))
     setShowCountdown(false)
   } 
@@ -134,7 +129,8 @@ export const MiddleClass = observer(() => {
             if (target.audio) {
               await middleRoomStore.muteAudio(id, isLocal(id))
             } else {
-              await middleRoomStore.unmuteAudio(id, isLocal(id))
+              await middleRoomStore.sendUnmuteApply('audio', id)
+              // await middleRoomStore.unmuteAudio(id, isLocal(id))
             }
           }
           break
@@ -142,11 +138,10 @@ export const MiddleClass = observer(() => {
         case 'video': {
           if (target) {
             if (target.video) {
-              console.log('***click 关闭视频 无需请求学生')
               await middleRoomStore.muteVideo(id, isLocal(id))
             } else {
-              setStuId(id)
-              clickStartCountdown(10)
+              await middleRoomStore.sendUnmuteApply('video', id)
+              // await middleRoomStore.unmuteVideo(id, isLocal(id))
             }
           }
           break
@@ -301,7 +296,7 @@ export const MiddleClass = observer(() => {
                 onClick={handleNotice}
                 active={middleRoomStore.notice.reason ? true : false} />
             : null}
-          </div>
+          </div>  
         </div>
         <SecondGroupVideoMarquee />
       </div>

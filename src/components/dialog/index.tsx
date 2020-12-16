@@ -26,26 +26,41 @@ interface RoomProps {
   dialogMessage: DialogMessage
 }
 
-function RoomDialog(
-{
+const RoomDialog: React.FC<RoomProps> = observer(
+({
   onConfirm,
   onClose,
   dialogId,
   dialogMessage
-}: RoomProps) {
+}) => {
 
   const uiStore = useUIStore()
 
   const handleClose = async () => {
     await onClose(dialogMessage)
     uiStore.removeDialog(dialogId)
+    // 判读当前倒计时是否结束 如果没结束 清除倒计时
+    if(middleRoomStore.time !== 0) {
+      clearTimeout(middleRoomStore.timer)
+    }
   };
 
   const handleConfirm = async () => {
     await onConfirm(dialogMessage)
     uiStore.removeDialog(dialogId)
+    if(middleRoomStore.time !== 0) {
+      clearTimeout(middleRoomStore.timer)
+    }
   }
 
+  const middleRoomStore = useMiddleRoomStore()
+
+  useEffect(() => {
+    if(middleRoomStore.time === 0) {
+      handleClose()
+    }
+  }, [middleRoomStore.time])
+  
   return (
     <div>
       <Dialog
@@ -59,7 +74,11 @@ function RoomDialog(
           className="modal-container"
         >
           <DialogContentText className="dialog-title">
-            {dialogMessage.message}
+            {dialogMessage.message} 
+            {
+              dialogMessage.type === 'unmuteApply' ?
+              <span>{middleRoomStore.time}</span> : null
+            }
           </DialogContentText>
           <div className="button-group">
             <CustomButton name={t("toast.confirm")} className="confirm" onClick={handleConfirm} color="primary" />
@@ -69,7 +88,7 @@ function RoomDialog(
       </Dialog>
     </div>
   );
-}
+})
 
 // const useLocationGuard = observer(() => {
 
@@ -97,7 +116,10 @@ export const RoomNavigationDialog = observer((props: any) => {
       uiStore.unblock()
       history.push('/')
     }
-  }, [roomStore.teacherRejectApply, ])
+    else if (type === 'unmuteApply') {
+      
+    }
+  }, [roomStore.teacherRejectApply, middleRoomStore])
 
   const onConfirm = useCallback(async ({type, option}: DialogMessage) => {
     if (type === 'exitRoom') {
@@ -131,9 +153,17 @@ export const RoomNavigationDialog = observer((props: any) => {
     else if (type === 'cancelConfirm') {
       extensionStore.removeApplyUserBy(option.userUuid)
     }
+    else if (type === 'unmuteApply') {
+      if (option.type === 'video') {
+        await middleRoomStore.unmuteVideo(option.userUuid, true)
+      }
+      if (option.type === 'audio') {
+        await middleRoomStore.unmuteAudio(option.userUuid, true)
+      }
+    }
 
     return;
-  }, [props.handleLocationConfirm, location.pathname, breakoutRoomStore, roomStore, uiStore, history, extensionStore])
+  }, [props.handleLocationConfirm, location.pathname, breakoutRoomStore, roomStore, uiStore, history, extensionStore, middleRoomStore])
 
   return <>
     {

@@ -27,7 +27,9 @@ const en = {
     "upload-log": "Upload Log",
     "exit-room": "Exit Room",
     "lang-select": "Switch Language",
-    "requests_to_connect_the_microphone": "Requests To Connect The Microphone"
+    "requests_to_connect_the_microphone": "Requests To Connect The Microphone",
+    "apply_unmute_video": "Apply open camera",
+    "apply_unmute_audio": "Apply open microphone",
   },
   'doc_center': 'Course Document Center',
   'upload_picture': 'Upload Picture',
