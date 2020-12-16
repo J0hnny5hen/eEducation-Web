@@ -590,20 +590,17 @@ export class MiddleRoomStore extends SimpleInterval {
           this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
-          console.log('get groups***', groups)
-          console.log('get students***', students)
           let userGroups: UserGroup[] = []
           if (groups) {
             Object.keys(groups).forEach(groupUuid => {
               let group = groups[groupUuid]
               let userGroup: UserGroup = {
                 groupName: group.groupName,
-                groupUuid: 'groupUuid' + groupUuid,
+                groupUuid: groupUuid,
                 members: [],
               }
               group.members.forEach((stuUuid: string) => {
                 let info = students[stuUuid]
-                console.log('***info.reward', info)
                 userGroup.members.push({
                   userUuid: stuUuid,
                   userName: info.userName,
@@ -669,7 +666,6 @@ export class MiddleRoomStore extends SimpleInterval {
             streamUuid: streamUuid,
           }
           let cause = { cmd: "401" }
-          console.log('****propertiesStu', properties)
           await this.updateRoomBatchProperties({ properties, cause })
         }
       }
@@ -806,7 +802,6 @@ export class MiddleRoomStore extends SimpleInterval {
         showHover: this.roomInfo.userRole === 'teacher'
       }))
     }
-    console.log('***allStudents', allStudents)
 
     return allStudents
   }
@@ -1238,6 +1233,15 @@ export class MiddleRoomStore extends SimpleInterval {
   get roomInfo() {
     return this.appStore.roomInfo
   }
+
+  @computed
+  get studentSum() {
+    if(this.roomProperties.students) {
+      return Object.keys(this.roomProperties.students).length
+    }
+    return 0
+  }
+
 
   @action
   async leave() {

@@ -11,6 +11,10 @@
     border-radius: 5px;
     border: 1px solid #DBE2E5;
     font-family: PingFangSC-Medium, PingFang SC;
+    .group-top {
+      display: flex;
+      
+    }
     .text-group {
       position: absolute;
       top: 25px;
@@ -26,7 +30,7 @@
       font-size: 13px;
       position: absolute;
       top: 28px;
-      margin-left: 67px;
+      margin-left: 120px;
     }
     .btn-operation {
       position: absolute;
@@ -192,7 +196,7 @@
       }
     }
   }
-  
+
   .group-card-packup {
     display: flex;
     position: absolute;

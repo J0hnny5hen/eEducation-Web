@@ -13,6 +13,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {useExtensionStore} from '@/hooks';
 import { orderBy, shuffle } from 'lodash';
 import { observer } from 'mobx-react';
+import { t } from '@/i18n';
   
 const getItems = (count:number, offset = 0) =>
   Array.from({ length: count }, (v, k) => k).map(k => ({
@@ -152,10 +153,11 @@ interface MiddleGroupCardProps {
   platform: EventHandler<any>
   addStar: EventHandler<any>
   controlMicrophone: EventHandler<any>
+  isTeacher: boolean
 }
 
 export const MiddleGroupCard: React.FC<MiddleGroupCardProps> = observer(
-  ({group, platform, addStar, controlMicrophone}) => {
+  ({group, platform, addStar, controlMicrophone, isTeacher}) => {
 
   const [isClose, setIsClose] = useState<boolean>(false)
 
@@ -177,16 +179,19 @@ export const MiddleGroupCard: React.FC<MiddleGroupCardProps> = observer(
           <div className="group-text">{group.groupName}:</div>
           <div className="group-stu-num">({group.members.length}人)</div>
         </div>
-        <div className="icon">
-          {
-            isClose?
-            <div className="close-microphone" onClick={controlOpen}></div>
-            :
-            <div className="microphone" onClick={controlClose}></div>
-          }
-          <div className="platform" onClick={platform}></div>
-          <div className="add-star" onClick={addStar}></div>
-        </div>
+        {
+          isTeacher?
+          <div className="icon">
+            {
+              isClose?
+              <div className="close-microphone" onClick={controlOpen}></div>
+              :
+              <div className="microphone" onClick={controlClose}></div>
+            }
+            <div className="platform" onClick={platform}></div>
+            <div className="add-star" onClick={addStar}></div>
+          </div> : null
+        }
       </div>
       <hr />
       <div className="group-body">
@@ -236,7 +241,7 @@ export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList,
   const [addition, setAddition] = useState<boolean>(true)
 
   // ***
-  const [maximum, setMaximum] = React.useState<number>(1)
+  const [maximum, setMaximum] = React.useState<number>(2)
   
   const [groupType, setGroupType] = React.useState<number>(0)
 
@@ -315,15 +320,15 @@ export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList,
     onSave(groupItems)
   },[onSave, groupItems])
 
-  const groupText = '分组使用说明：选择每组人数上限进行分组。例如：教室内共5名学生，选择每组上限2人则分成3组（2 2 1），选择每组上限4人则分成两组（4 1），选择每组上限6人则分成1组（5）。'
+  const groupText = t('middle_room.groupText')
   
   return (
     <div className="grouping">
       {
         controlSpread === 1 && !addition?
         <div className="group-card-packup">
-          <div className="text">分组</div>
-          <span className="stu-num">学生总数 {studentTotal}</span>
+          <div className="text">{t('middle_room.grouping')}</div>
+          <span className="stu-num">{t('middle_room.students_total') + ' ' + studentTotal}</span>
           <div className="spread-group-card" onClick={reduceGroupSmall}></div>
           <div className="close-group-card" onClick={closeGroup}></div>
         </div> 
@@ -332,24 +337,26 @@ export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList,
       { 
         controlSpread === 2 && addition?
         <div className="group-card">
-          <span className="text-group">分组</span>
-          <span className="text-num">学生总数 {studentTotal}</span>
-          <div className="btn-operation">
-            {
-              dragGrouping? <Button variant="contained" className="btn-reset" onClick={handleResetGroup}>重新分组</Button>
-              : <Button variant="contained" className="btn-create" onClick={handleAddNewGroup}>创建分组</Button>
-            }
-            <Button variant="contained" className="btn-delete" disabled={!dragGrouping} onClick={onRemove}>删除分组</Button>
+          <div className="group-top">
+            <span className="text-group">{t('middle_room.grouping')}</span>
+            <span className="text-num">{t('middle_room.students_total') + ' ' + studentTotal}</span>
+            <div className="btn-operation">
+              {
+                dragGrouping? <Button variant="contained" className="btn-reset" onClick={handleResetGroup}>{t('middle_room.regroup')}</Button>
+                : <Button variant="contained" className="btn-create" onClick={handleAddNewGroup}>{t('middle_room.create_group')}</Button>
+              }
+              <Button variant="contained" className="btn-delete" disabled={!dragGrouping} onClick={onRemove}>{t('middle_room.delete_group')}</Button>
+            </div>
+            <div className="icon-reduce" onClick={reduceGroup}></div>
+            <div className="icon-close" onClick={closeGroup}></div>
           </div>
-          <div className="icon-reduce" onClick={reduceGroup}></div>
-          <div className="icon-close" onClick={closeGroup}></div>
           {
             visibleAddNewGroup ? 
             <div className="creat-group">
-              <div className="creat-text">创建分组</div>
+              <div className="creat-text">{t('middle_room.create_group')}</div>
               <FormControl className={classes.formControl}>
                 <Tooltip title={groupText}>
-                  <InputLabel id="demo-simple-select-label" >分组内人数上限</InputLabel>
+                  <InputLabel id="demo-simple-select-label" >{t('middle_room.maximum_number_group')}</InputLabel>
                 </Tooltip>
                 <Select
                   labelId="demo-simple-select-label"
@@ -366,20 +373,20 @@ export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList,
                 </Select>
               </FormControl>
               <FormControl className={classes.formControl}>
-                <InputLabel id="demo-simple-select-label">分组方式</InputLabel>
+                <InputLabel id="demo-simple-select-label">{t('middle_room.grouping_way')}</InputLabel>
                 <Select
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
                   value={groupType}
                   onChange={handleChangeType}
                 >
-                  <MenuItem value={0}>顺序</MenuItem>
-                  <MenuItem value={1}>随机</MenuItem>
+                  <MenuItem value={0}>{t('middle_room.order')}</MenuItem>
+                  <MenuItem value={1}>{t('middle_room.order')}</MenuItem>
                 </Select>
               </FormControl>
               <div className="creat-btn-box">
-                <Button variant="contained" className="btn-sure" onClick={handleConfirm}>确定</Button>
-                <Button variant="contained" className="btn-cancel" onClick={handleCancel}>取消</Button>
+                <Button variant="contained" className="btn-sure" onClick={handleConfirm}>{t('middle_room.sure')}</Button>
+                <Button variant="contained" className="btn-cancel" onClick={handleCancel}>{t('middle_room.cancel')}</Button>
               </div>
             </div> 
             : null   
@@ -390,7 +397,7 @@ export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList,
               <div className="drag-card">
                 <GroupingBoard groups={groupItems} />
               </div> 
-              <Button variant="contained"  className="btn-save" onClick={handleSave}>保存修改</Button>
+              <Button variant="contained"  className="btn-save" onClick={handleSave}>{t('middle_room.save_changes')}</Button>
             </div>
           : null
           }
