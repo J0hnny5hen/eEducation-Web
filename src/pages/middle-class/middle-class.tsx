@@ -110,13 +110,13 @@ export const MiddleClass = observer(() => {
     }
   }, [sceneStore, boardStore, studentsList, middleRoomStore])
 
-  const handleMute = async () => {
+  const handleMute = useCallback(async () => {
     if (mutedChat) {
       await sceneStore.unmuteChat()
     } else {
       await sceneStore.muteChat()
     }
-  }
+  }, [mutedChat, sceneStore])
 
   const handleNotice = () => {
     // middleRoomStore.showDialog()
@@ -192,7 +192,7 @@ export const MiddleClass = observer(() => {
           </div>
           <div className={`chat-container ${uiStore.activeTab === 'chatroom' ? '' : 'hide'}`}>
             <ChatPanel
-              canChat={true}
+              canChat={sceneStore.roomInfo.userRole === 'teacher'}
               muteControl={sceneStore.muteControl}
               muteChat={sceneStore.mutedChat}
               handleMute={handleMute}

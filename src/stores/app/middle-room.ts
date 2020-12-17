@@ -576,6 +576,7 @@ export class MiddleRoomStore extends SimpleInterval {
         BizLogger.info("classroom-property-updated", classroom)
         // if (evt.reason === EduClassroomStateType.EduClassroomStateTypeRoomAttrs) {
           this.roomProperties = classroom.roomProperties
+          this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
           console.log("roomProperties >>>>>>> ", classroom.roomProperties)
           const record = get(classroom, 'roomProperties.record')
           if (record) {
@@ -611,33 +612,8 @@ export class MiddleRoomStore extends SimpleInterval {
               this.delInterval('timer')
             }
           }
-          this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
           // 中班功能
           this.roomProperties = classroom.roomProperties
-          // const groups = get(classroom, 'roomProperties.groups')
-          // const students = get(classroom, 'roomProperties.students')
-          // let userGroups: UserGroup[] = []
-          // if (groups) {
-          //   Object.keys(groups).forEach(groupUuid => {
-          //     let group = groups[groupUuid]
-          //     let userGroup: UserGroup = {
-          //       groupName: group.groupName,
-          //       groupUuid: groupUuid,
-          //       members: [],
-          //     }
-          //     group.members.forEach((stuUuid: string) => {
-          //       let info = students[stuUuid]
-          //       userGroup.members.push({
-          //         userUuid: stuUuid,
-          //         userName: info.userName,
-          //         reward: info.reward,
-          //         streamUuid: info.streamUuid,
-          //       })
-          //     })
-          //     userGroups.push(userGroup)
-          //   })
-          //   this.userGroups = userGroups
-          // }
       })
       roomManager.on('room-chat-message', (evt: any) => {
         const {textMessage} = evt;

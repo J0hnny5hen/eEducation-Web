@@ -144,10 +144,10 @@ export class MiddleRoomApi {
       method: 'POST',
       data: {
         fromUserUuid: this.me.uuid,
-        // action: action,
+        action: action,
         // processUuid: this.room.uuid,
         payload: {
-          action: action,
+          // action: action,
           fromUser: this.me,
           fromRoom: this.room,
         },
@@ -164,9 +164,9 @@ export class MiddleRoomApi {
       method: 'DELETE',
       data: {
         fromUserUuid: this.me.uuid,
-        // action: action,
+        action: action,
         payload: {
-          action,
+          // action,
           fromUser: this.me,
           fromRoom: this.room,
         },
