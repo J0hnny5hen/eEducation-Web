@@ -71,7 +71,7 @@ export const MiddleClass = observer(() => {
     if (sceneStore.roomInfo.userRole === 'teacher' 
     // || isLocal(id)
     )  {
-      const target = studentsList.find((it) => it.userUuid === id)
+      const target = studentsList.find((it: any) => it.userUuid === id)
       if (!target) return
       switch(type) {
         case 'kick': {
