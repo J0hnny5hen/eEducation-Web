@@ -13,7 +13,6 @@ import {ChatPanel} from '@/components/chat/panel';
 import { t } from '@/i18n';
 import { UserGroup } from '@/sdk/education/interfaces/index.d';
 import {StudentList} from '@/components/student-list';
-import { EduMediaStream } from '@/stores/app/room';
 
 interface StreamsProps {
   othersStreams: any[]

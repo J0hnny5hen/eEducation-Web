@@ -1,24 +1,15 @@
-import { ExtensionStore } from './extension';
 import { SimpleInterval } from './../mixin/simple-interval';
 import { CauseType } from './../../sdk/education/core/services/edu-api';
 import { InvitationEnum, MiddleRoomApi } from '../../services/middle-room-api';
-import { Mutex } from './../../utils/mutex';
 import uuidv4 from 'uuid/v4';
-import { EduAudioSourceType, EduTextMessage, EduSceneType, EduClassroom } from './../../sdk/education/interfaces/index.d';
-import { RemoteUserRenderer } from './../../sdk/education/core/media-service/renderer/index';
+import { EduAudioSourceType, EduTextMessage, EduSceneType } from './../../sdk/education/interfaces/index.d';
 import { RoomApi } from './../../services/room-api';
-import { EduClassroomManager } from '@/sdk/education/room/edu-classroom-manager';
 import { PeerInviteEnum } from '@/sdk/education/user/edu-user-service';
-import { LocalUserRenderer, UserRenderer } from '../../sdk/education/core/media-service/renderer/index';
+import { UserRenderer } from '../../sdk/education/core/media-service/renderer/index';
 import { AppStore } from '@/stores/app/index';
-import { RoomStore } from '@/stores/app/room';
-import { AgoraWebRtcWrapper } from '../../sdk/education/core/media-service/web/index';
 import { observable, computed, action, runInAction } from 'mobx';
-import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/electron';
-import { StartScreenShareParams, PrepareScreenShareParams } from '@/sdk/education/core/media-service/interfaces';
-import { MediaService } from '@/sdk/education/core/media-service';
 import { get } from 'lodash';
-import { EduCourseState, EduUser, DeleteStreamType, EduStream, StreamType, EduVideoSourceType, EduRoleType, UserGroup, RoomProperties } from '@/sdk/education/interfaces/index.d';
+import { EduUser, DeleteStreamType, EduStream, StreamType, EduVideoSourceType, EduRoleType, UserGroup, RoomProperties } from '@/sdk/education/interfaces/index.d';
 import { ChatMessage } from '@/utils/types';
 import { t } from '@/i18n';
 import { DialogType } from '@/components/dialog';
@@ -161,7 +152,7 @@ export class MiddleRoomStore extends SimpleInterval {
 
   @computed
   get teacherExists(): boolean {
-    return !!this.sceneStore.userList.find((it) => it.role === 'host')
+    return !!this.sceneStore.userList.find((it: any) => it.role === 'host')
   }
 
   @computed
@@ -505,7 +496,7 @@ export class MiddleRoomStore extends SimpleInterval {
               this.showNotice(action, uuid, name)
               if (action === InvitationEnum.Apply) {
                 const userExists = this.extensionStore.applyUsers.find((user) => user.userUuid === uuid)
-                const user = this.roomManager?.data.userList.find(it => it.user.userUuid === uuid)
+                const user = this.roomManager?.data.userList.find((it: any) => it.user.userUuid === uuid)
                 if (!userExists && user) {
                   this.extensionStore.applyUsers.push({
                     userName: name,
@@ -791,11 +782,11 @@ export class MiddleRoomStore extends SimpleInterval {
     }
 
     const userIdsNotInPkList = this.sceneStore
-      .userList.filter((user) => !this.pkList.includes(user.userUuid))
-      .map((user) => user.userUuid)
+      .userList.filter((user: any) => !this.pkList.includes(user.userUuid))
+      .map((user: any) => user.userUuid)
 
     if (userIdsNotInPkList) {
-      const streams = this.sceneStore.studentStreams.filter((stream) => userIdsNotInPkList.includes(stream.userUuid))
+      const streams = this.sceneStore.studentStreams.filter((stream: any) => userIdsNotInPkList.includes(stream.userUuid))
       allStudents.studentStreams = allStudents.studentStreams.concat(streams)
       allStudents.studentStreams = allStudents.studentStreams.map((stream) => ({
         ...stream,
@@ -993,9 +984,9 @@ export class MiddleRoomStore extends SimpleInterval {
       studentStreams: [],
     }
 
-    const userIds = this.sceneStore.userList.map((u) => u.userUuid)
+    const userIds = this.sceneStore.userList.map((u: any) => u.userUuid)
 
-    const streams = this.sceneStore.studentStreams.filter((stream) => userIds.includes(stream.userUuid))
+    const streams = this.sceneStore.studentStreams.filter((stream: any) => userIds.includes(stream.userUuid))
     firstGroup.studentStreams = firstGroup.studentStreams.concat(streams)
     firstGroup.studentStreams = firstGroup.studentStreams.map((stream) => ({
       ...stream,
@@ -1082,7 +1073,7 @@ export class MiddleRoomStore extends SimpleInterval {
   get studentsList() {
     const showControls = this.roomInfo.userRole !== 'student'
     const streams = this.sceneStore.studentStreams
-    const streamUserIds = streams.map(stream => stream.userUuid)
+    const streamUserIds = streams.map((stream: any) => stream.userUuid)
     const userList = this.roomStudentUserList
       .filter(
         (e => 
@@ -1102,7 +1093,7 @@ export class MiddleRoomStore extends SimpleInterval {
     return streams
     .concat(userList)
     .filter((it: any) => {
-      const userList = this.sceneStore.userList.find((user) => user.userUuid === it.userUuid)
+      const userList = this.sceneStore.userList.find((user: any) => user.userUuid === it.userUuid)
       if (userList) {
         return true
       } else {
@@ -1119,7 +1110,7 @@ export class MiddleRoomStore extends SimpleInterval {
   get rawStudentsList() {
     const showControls = this.roomInfo.userRole !== 'student'
     const streams = this.sceneStore.studentStreams
-    const streamUserIds = streams.map(stream => stream.userUuid)
+    const streamUserIds = streams.map((stream: any) => stream.userUuid)
     const userList = this.roomStudentUserList
       .filter(
         (e => 
@@ -1138,9 +1129,9 @@ export class MiddleRoomStore extends SimpleInterval {
       }))
     return streams
     .concat(userList)
-    .map((it) => ({
+    .map((it: any) => ({
       ...it,
-      offline: this.sceneStore.userList.find((user) => user.userUuid === it.userUuid) ? false : true
+      offline: this.sceneStore.userList.find((user: any) => user.userUuid === it.userUuid) ? false : true
     }))
   }
 
@@ -1164,7 +1155,7 @@ export class MiddleRoomStore extends SimpleInterval {
 
   @computed
   get studentUserList() {
-    return this.sceneStore.userList.filter(item => item.role !== 'host') 
+    return this.sceneStore.userList.filter((item: any) => item.role !== 'host') 
   }
 
   async batchUpdateStreamAttributes(streams: any[]) {
