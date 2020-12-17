@@ -7,6 +7,7 @@ import { t } from '@/i18n';
 import { observer } from 'mobx-react';
 import { useRoomStore, useUIStore, useBreakoutRoomStore, useMiddleRoomStore, useSceneStore, useExtensionStore } from '@/hooks';
 import { useHistory, useLocation } from 'react-router-dom';
+import { get } from 'lodash';
 
 export interface DialogMessage {
   type: string
@@ -48,7 +49,9 @@ const RoomDialog = observer((
     uiStore.removeDialog(dialogId)
   }
 
-  const time = middleRoomStore.timers.get(`${dialogMessage.option.type}${dialogMessage.option.userUuid}`)
+  const key = `${get(dialogMessage, 'option.type')}${get(dialogMessage, 'option.userUuid')}`
+
+  const time = middleRoomStore.timers.get(`${key}`)
 
   return (
     <div>

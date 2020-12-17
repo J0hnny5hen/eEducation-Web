@@ -184,7 +184,14 @@ export class MiddleRoomStore extends SimpleInterval {
   }
 
   @action
+  removeDialogs() {
+    this.uiStore.dialogs = []
+  }
+
+  @action
   reset() {
+    this.removeDialogs()
+    this.removeAllIntervals()
     this.appStore.mediaStore.resetRoomState()
     this.appStore.resetTime()
     this.sceneStore.reset()
@@ -1112,6 +1119,14 @@ export class MiddleRoomStore extends SimpleInterval {
     return this.appStore.roomInfo
   }
 
+  removeAllIntervals() {
+    this.delInterval('timer')
+    for (const [key, item] of this.intervals) {
+      clearInterval(item)
+      this.intervals.delete(key)
+    }
+  }
+
   @action
   async leave() {
     try {
@@ -1121,7 +1136,6 @@ export class MiddleRoomStore extends SimpleInterval {
       await this.eduManager.logout()
       await this.roomManager?.leave()
       this.appStore.uiStore.addToast(t('toast.successfully_left_the_business_channel'))
-      this.delInterval('timer')
       this.reset()
       this.resetRoomInfo()
       this.appStore.uiStore.updateCurSeqId(0)
