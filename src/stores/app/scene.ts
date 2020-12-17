@@ -362,6 +362,8 @@ export class SceneStore extends SimpleInterval {
     if (this.cameraLock) {
       return BizLogger.warn('[demo] [mic lock] unmuteLocalCamera')
     }
+    // TODO: To check camera
+    // await this.prepareCamera()
     await this.openCamera()
     const online = get(this.roomManager, 'userService.localStream.state', 0)
     const mediaState: any = online ? {
@@ -372,6 +374,36 @@ export class SceneStore extends SimpleInterval {
     }
     console.log(" unmuteLocalCamera ", mediaState)
     await this.roomManager.userService.updateMainStreamState(mediaState)
+  }
+
+  @action
+  async unmuteLocalAudio() {
+    await this.prepareMicrophone()
+    await this.openMicrophone()
+    const online = get(this.roomManager, 'userService.localStream.state', 0)
+    const mediaState: any = online ? {
+      'audioState': true
+    } : {
+      'audioState': true,
+      'videoState': false
+    }
+    console.log(" unmuteLocalMicrophone ", mediaState)
+    await this.roomManager?.userService.updateMainStreamState(mediaState)
+  }
+
+  @action
+  async unmuteLocalVideo() {
+    await this.prepareCamera()
+    await this.openCamera()
+    const online = get(this.roomManager, 'userService.localStream.state', 0)
+    const mediaState: any = online ? {
+      'videoState': true
+    } : {
+      'audioState': false,
+      'videoState': true
+    }
+    console.log(" unmuteLocalCamera ", mediaState)
+    await this.roomManager?.userService.updateMainStreamState(mediaState)
   }
 
   @action
@@ -399,6 +431,8 @@ export class SceneStore extends SimpleInterval {
     if (this.microphoneLock) {
       return BizLogger.warn('[demo] [mic lock] unmuteLocalMicrophone')
     }
+    // TODO: To check microphone
+    // await this.prepareMicrophone()
     await this.openMicrophone()
     const online = get(this.roomManager, 'userService.localStream.state', 0)
     const mediaState: any = online ? {

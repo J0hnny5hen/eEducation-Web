@@ -26,15 +26,17 @@ interface RoomProps {
   dialogMessage: DialogMessage
 }
 
-function RoomDialog(
+const RoomDialog = observer((
 {
   onConfirm,
   onClose,
   dialogId,
   dialogMessage
-}: RoomProps) {
+}: RoomProps) => {
 
   const uiStore = useUIStore()
+
+  const middleRoomStore = useMiddleRoomStore()
 
   const handleClose = async () => {
     await onClose(dialogMessage)
@@ -46,44 +48,7 @@ function RoomDialog(
     uiStore.removeDialog(dialogId)
   }
 
-  const numRef = useRef<number>(10)
-
-  const [num, setNum] = useState<number>(numRef.current)
-
-  const startClock = useCallback((timer: any) => {
-    if (numRef.current > 0) {
-      numRef.current -= 1
-      // console.log(">>> startClock#num ", numRef.current)
-      setNum(numRef.current)
-    } else {
-      clearInterval(timer)
-    }
-  }, [numRef.current, setNum, uiStore, dialogId])
-
-  useEffect(() => {
-    if (num === 0) {
-      uiStore.removeDialog(dialogId)
-    }
-  }, [num])
-
-  const clock = useRef<any>(null)
-
-  useEffect(() => {
-    if (dialogMessage.type === 'unmuteApply') {
-      if (clock.current) {
-        return
-      }
-      clock.current = setInterval(() => {
-        startClock(clock.current)
-      }, 1000)
-    }
-  }, [dialogMessage.type, clock.current, startClock])
-
-  useEffect(() => {
-    return () => {
-      clock.current && clearInterval(clock.current)
-    }
-  }, [])
+  const time = middleRoomStore.timers.get(`${dialogMessage.option.type}${dialogMessage.option.userUuid}`)
 
   return (
     <div>
@@ -104,12 +69,15 @@ function RoomDialog(
             <CustomButton name={t("toast.confirm")} className="confirm" onClick={handleConfirm} color="primary" />
             <CustomButton name={t("toast.cancel")} className="cancel" onClick={handleClose} color="primary" />
           </div>
-          {dialogMessage.type === 'unmuteApply' ? <span>{num}</span> : null}
+          {dialogMessage.type === 'unmuteApply' ? <span>{time}</span> : null}
         </DialogContent>
       </Dialog>
     </div>
   );
-}
+})
+
+// const RoomDialog = React.memo(_RoomDialog)
+
 
 // const useLocationGuard = observer(() => {
 
@@ -120,6 +88,7 @@ function RoomDialog(
 
 export const RoomNavigationDialog = observer((props: any) => {
   const middleRoomStore = useMiddleRoomStore()
+  const sceneStore = useSceneStore()
   const roomStore = useRoomStore()
   const breakoutRoomStore = useBreakoutRoomStore()
   const extensionStore = useExtensionStore()
@@ -176,10 +145,10 @@ export const RoomNavigationDialog = observer((props: any) => {
     }
     else if (type === 'unmuteApply') {
       if (option.type === 'video') {
-        await middleRoomStore.unmuteVideo(option.userUuid, true)
+        await sceneStore.unmuteLocalVideo()
       }
       if (option.type === 'audio') {
-        await middleRoomStore.unmuteAudio(option.userUuid, true)
+        await sceneStore.unmuteLocalAudio()
       }
     }
 
@@ -190,7 +159,7 @@ export const RoomNavigationDialog = observer((props: any) => {
     {
     uiStore.dialogs.map((dialog, idx) => (
       <RoomDialog
-        key={`${dialog.id}${idx}`}
+        key={`${idx}`}
         dialogId={dialog.id as number}
         dialogMessage={dialog.dialog as DialogMessage}
         onClose={onClose}

@@ -143,7 +143,7 @@ export class EduLogger {
   static async uploadLog(roomId: string) {
     console.log('[LOG] [upload] roomId: ', roomId)
     let logs: any[] = []
-    db.logs.each((e: any) => logs.push(e))
+    await db.logs.each((e: any) => logs.push(e))
     const logsStr = logs
       .map((e: any) => JSON.parse(e.content))
       .map((e: any) => (Array.isArray(e) ? e[0] : e))

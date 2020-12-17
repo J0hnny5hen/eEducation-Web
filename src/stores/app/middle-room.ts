@@ -146,12 +146,20 @@ export class MiddleRoomStore extends SimpleInterval {
 
   @computed 
   get canOperator() {
-    if (this.teacherExists) {
+    if (this.sceneStore.roomInfo.userRole === "teacher") {
       const classStarted = this.sceneStore.classState === 1
       if (classStarted) {
         return true
       }
       return false
+    } else {
+      if (this.teacherExists) {
+        const classStarted = this.sceneStore.classState === 1
+        if (classStarted) {
+          return true
+        }
+        return false
+      }
     }
     return false
   }
@@ -309,6 +317,13 @@ export class MiddleRoomStore extends SimpleInterval {
     }
   }
 
+
+  @observable
+  timers = new Map<string, number>()
+
+  @observable
+  intervals = new Map<string, any>()
+
   showDialog(userName: string, userUuid: any) {
     const isExists = this.appStore
       .uiStore
@@ -343,6 +358,33 @@ export class MiddleRoomStore extends SimpleInterval {
       },
       message: `${userName}` + (type === 'video'? t("icon.apply_unmute_video") : t("icon.apply_unmute_audio"))
     })
+    this.startTimer({
+      userUuid,
+      type,
+    })
+  }
+
+  startTimer(option: any) {
+    const {type, userUuid} = option
+    const key = `${option.type}${option.userUuid}`
+    this.timers.set(key, 10)
+    this.intervals.set(key, setInterval(() => {
+      const x = this.timers.get(`${key}`) as number - 1
+      if (x < 1) {
+        this.timers.delete(key)
+        const isExists = this.appStore
+        .uiStore
+        .dialogs.filter((it: DialogType) => get(it.dialog, 'option.userUuid', ''))
+        .find((it: DialogType) => get(it.dialog, 'option.userUuid', '') === userUuid && get(it.dialog, 'option.type') === type)
+        if (isExists) {
+          this.uiStore.removeDialog(isExists.id)
+        }
+        const timer = this.intervals.get(key)
+        clearInterval(timer)
+        this.intervals.delete(key)
+      }
+      this.timers.set(key, x)
+    }, 1000))
   }
 
   removeDialogBy(userUuid: any) {
