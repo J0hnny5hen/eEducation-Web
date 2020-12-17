@@ -139,8 +139,8 @@ export const MiddleClass = observer(() => {
             extensionStore.controlGrouping ?
             <MiddleGrouping dataList={roomStudentUserList} 
             studentTotal={middleRoomStore && middleRoomStore.studentSum}
-            onSave={(groups) => {middleRoomStore.groupOnSave(groups)}} 
-            onRemove={() => middleRoomStore.removeGroup} />
+            onSave={ async (groups) => { await middleRoomStore.groupOnSave(groups)}} 
+            onRemove={ async () => await middleRoomStore.removeGroup()} />
             : null
           }
           {
