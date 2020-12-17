@@ -201,6 +201,37 @@ export class MiddleRoomStore extends SimpleInterval {
   @observable
   userGroups: UserGroup[] = []
 
+  @computed
+  get cardUserGroups() {
+    const groups = get(this, 'roomProperties.groups')
+    const students = get(this, 'roomProperties.students')
+    let userGroups: UserGroup[] = []
+    if (groups) {
+      Object.keys(groups).forEach(groupUuid => {
+        let group = groups[groupUuid]
+        let userGroup: UserGroup = {
+          groupName: group.groupName,
+          groupUuid: groupUuid,
+          members: [],
+        }
+        group.members.forEach((stuUuid: string) => {
+          let info = students[stuUuid]
+          userGroup.members.push({
+            userUuid: stuUuid,
+            userName: info.userName,
+            reward: info.reward,
+            streamUuid: info.streamUuid,
+            offline: this.sceneStore.userList.find((user) => user.userUuid === stuUuid) ? false : true
+          })
+        })
+        userGroups.push(userGroup)
+      })
+      return userGroups
+    }
+
+    return userGroups
+  }
+
   @observable
   pkList: any[] = []
 
@@ -208,10 +239,10 @@ export class MiddleRoomStore extends SimpleInterval {
   notice?: any = undefined
 
   @action
-  showNotice(type: number, userUuid: string, userName: string) {
-    BizLogger.info(`type: ${type}, userUuid: ${userUuid}`)
+  async showInvitationNotice(cmd: number, action: number, userUuid: string, userName: string) {
+    BizLogger.info(`cmd: ${cmd} action: ${action}, userUuid: ${userUuid}`)
     let text = t('toast.you_have_a_default_message')
-    switch(type) {
+    switch(action) {
       case InvitationEnum.Apply: {
         text = t('middle_room.student_hands_up', {reason: userName})
         break;
@@ -229,6 +260,44 @@ export class MiddleRoomStore extends SimpleInterval {
       userUuid
     }
     this.appStore.uiStore.addToast(this.notice.reason)
+
+    if (action === InvitationEnum.Apply) {
+      const userExists = this.extensionStore.applyUsers.find((user) => user.userUuid === userUuid)
+      const user = this.roomManager?.data.userList.find((it: any) => it.user.userUuid === userUuid)
+      if (!userExists && user) {
+        this.extensionStore.applyUsers.push({
+          userName: userName,
+          userUuid: userUuid,
+          streamUuid: user.streamUuid,
+          state: true
+        })
+      }
+      this.uiStore.showShakeHands()
+    }
+    if (action === InvitationEnum.Cancel) {
+      const applyUsers = this.extensionStore.applyUsers.filter((it) => it.userUuid !== userUuid)
+      this.extensionStore.applyUsers = applyUsers
+    }
+    if (action === PeerInviteEnum.teacherAccept 
+      && this.isStudent()) {
+      try {
+        await this.sceneStore.prepareCamera()
+        await this.sceneStore.prepareMicrophone()
+        BizLogger.info("propertys ", this.sceneStore._hasCamera, this.sceneStore._hasMicrophone)
+        if (this.sceneStore._hasCamera) {
+          await this.sceneStore.openCamera()
+        }
+
+        if (this.sceneStore._hasMicrophone) {
+          BizLogger.info('open microphone')
+          await this.sceneStore.openMicrophone()
+        }
+      } catch (err) {
+        BizLogger.warn('published failed', err) 
+        throw err
+      }
+      this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
+    }
   }
 
   @action
@@ -484,52 +553,16 @@ export class MiddleRoomStore extends SimpleInterval {
           }
           try {
             BizLogger.info('[rtm] user-message', evt)
-            const fromUserUuid = evt.message.fromUser.userUuid
-            const fromUserName = evt.message.fromUser.userName
+            // const fromUserUuid = evt.message.fromUser.userUuid
+            // const fromUserName = evt.message.fromUser.userName
             const msg = decodeMsg(evt.message.message)
             BizLogger.info("user-message", msg)
             if (msg) {
-              const {payload} = msg
-              const {action} = payload
-              // const payload = msg.payload
+              const {cmd, data} = msg
+              const {payload, action} = data
               const {name, role, uuid} = payload.fromUser
-              this.showNotice(action, uuid, name)
-              if (action === InvitationEnum.Apply) {
-                const userExists = this.extensionStore.applyUsers.find((user) => user.userUuid === uuid)
-                const user = this.roomManager?.data.userList.find((it: any) => it.user.userUuid === uuid)
-                if (!userExists && user) {
-                  this.extensionStore.applyUsers.push({
-                    userName: name,
-                    userUuid: uuid,
-                    streamUuid: user.streamUuid,
-                    state: true
-                  })
-                }
-                this.uiStore.showShakeHands()
-              }
-              if (action === InvitationEnum.Cancel) {
-                const applyUsers = this.extensionStore.applyUsers.filter((it) => it.userUuid !== uuid)
-                this.extensionStore.applyUsers = applyUsers
-              }
-              if (action === PeerInviteEnum.teacherAccept 
-                && this.isStudent()) {
-                try {
-                  await this.sceneStore.prepareCamera()
-                  await this.sceneStore.prepareMicrophone()
-                  BizLogger.info("propertys ", this.sceneStore._hasCamera, this.sceneStore._hasMicrophone)
-                  if (this.sceneStore._hasCamera) {
-                    await this.sceneStore.openCamera()
-                  }
-      
-                  if (this.sceneStore._hasMicrophone) {
-                    BizLogger.info('open microphone')
-                    await this.sceneStore.openMicrophone()
-                  }
-                } catch (err) {
-                  BizLogger.warn('published failed', err) 
-                  throw err
-                }
-                this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
+              if (cmd === 1) {
+                await this.showInvitationNotice(cmd, action, uuid, name)
               }
             }
           } catch (error) {
@@ -581,30 +614,30 @@ export class MiddleRoomStore extends SimpleInterval {
           this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
           // 中班功能
           this.roomProperties = classroom.roomProperties
-          const groups = get(classroom, 'roomProperties.groups')
-          const students = get(classroom, 'roomProperties.students')
-          let userGroups: UserGroup[] = []
-          if (groups) {
-            Object.keys(groups).forEach(groupUuid => {
-              let group = groups[groupUuid]
-              let userGroup: UserGroup = {
-                groupName: group.groupName,
-                groupUuid: groupUuid,
-                members: [],
-              }
-              group.members.forEach((stuUuid: string) => {
-                let info = students[stuUuid]
-                userGroup.members.push({
-                  userUuid: stuUuid,
-                  userName: info.userName,
-                  reward: info.reward,
-                  streamUuid: info.streamUuid,
-                })
-              })
-              userGroups.push(userGroup)
-            })
-            this.userGroups = userGroups
-          }
+          // const groups = get(classroom, 'roomProperties.groups')
+          // const students = get(classroom, 'roomProperties.students')
+          // let userGroups: UserGroup[] = []
+          // if (groups) {
+          //   Object.keys(groups).forEach(groupUuid => {
+          //     let group = groups[groupUuid]
+          //     let userGroup: UserGroup = {
+          //       groupName: group.groupName,
+          //       groupUuid: groupUuid,
+          //       members: [],
+          //     }
+          //     group.members.forEach((stuUuid: string) => {
+          //       let info = students[stuUuid]
+          //       userGroup.members.push({
+          //         userUuid: stuUuid,
+          //         userName: info.userName,
+          //         reward: info.reward,
+          //         streamUuid: info.streamUuid,
+          //       })
+          //     })
+          //     userGroups.push(userGroup)
+          //   })
+          //   this.userGroups = userGroups
+          // }
       })
       roomManager.on('room-chat-message', (evt: any) => {
         const {textMessage} = evt;
@@ -824,7 +857,9 @@ export class MiddleRoomStore extends SimpleInterval {
     })
     return {
       g1,
-      g2, 
+      g2,
+      g1MemberIds,
+      g2MemberIds,
       g1Members,
       g2Members,
     }
@@ -975,43 +1010,49 @@ export class MiddleRoomStore extends SimpleInterval {
   get groups() {
     const firstGroup: VideoMarqueeItem = {
       mainStream: null,
-      studentStreams: [],
+      studentStreams: this.platformState.g1Members.map((stream) => ({
+        ...stream,
+        showControls: false,
+        showHover: this.roomInfo.userRole === 'teacher',
+        showMediaBtn: true
+      }))
     }
 
-    // TODO: only need in PRD PK mode. Still not implemented
     const secondGroup: VideoMarqueeItem = {
       mainStream: null,
-      studentStreams: [],
+      studentStreams: this.platformState.g2Members.map((stream) => ({
+        ...stream,
+        showControls: false,
+        showHover: this.roomInfo.userRole === 'teacher',
+        showMediaBtn: true,
+      }))
     }
 
-    const userIds = this.sceneStore.userList.map((u: any) => u.userUuid)
+    const userIds = this.platformState.g1MemberIds
 
-    const streams = this.sceneStore.studentStreams.filter((stream: any) => userIds.includes(stream.userUuid))
+    const streams = this.sceneStore.studentStreams
+      .filter((stream: any) => !userIds.includes(stream.userUuid))
+      .map((stream) => ({
+        ...stream,
+        // showStar: true,
+        showControls: false,
+        showHover: this.roomInfo.userRole === 'teacher',
+        showMediaBtn: true
+      }))
+
     firstGroup.studentStreams = firstGroup.studentStreams.concat(streams)
     firstGroup.studentStreams = firstGroup.studentStreams.map((stream) => ({
       ...stream,
-      // showStar: true,
-      showControls: false,
-      showHover: this.roomInfo.userRole === 'teacher',
-      showMediaBtn: true
+      rewardNum: get(this.roomProperties.students, `${stream.userUuid}.reward`, 0)
+    }))
+
+    secondGroup.studentStreams = secondGroup.studentStreams.map((stream) => ({
+      ...stream,
+      rewardNum: get(this.roomProperties.students, `${stream.userUuid}.reward`, 0)
     }))
 
     return [firstGroup, secondGroup]
   }
-
-  // @observable
-  // groups: any[] = [
-  //   {
-  //     mainStream: null,
-  //     studentStreams: [],
-  //     // studentStreams: genStudentStreams(20),
-  //   },
-  //   {
-  //     mainStream: null,
-  //     studentStreams: [],
-  //     // studentStreams: genStudentStreams(20),
-  //   }
-  // ]
 
   getUserReward(userUuid: string) {
     const user = this.roomStudentUserList.find((it) => it.userUuid === userUuid)
@@ -1141,6 +1182,21 @@ export class MiddleRoomStore extends SimpleInterval {
   }
 
   @computed
+  get onlineStudentList() {
+    const studentRecords = get(this.roomProperties, 'students', {})
+    return this.sceneStore
+      .userList.filter((user) => user.role !== 'host')
+      .filter((user) => studentRecords[user.userUuid])
+      .map((user) => ({
+        userUuid: user.userUuid,
+        streamUuid: studentRecords[user.userUuid].streamUuid,
+        userName: studentRecords[user.userUuid].userName,
+        account: studentRecords[user.userUuid].userName,
+        reward: studentRecords[user.userUuid].reward,
+      }))
+  }
+
+  @computed
   get roomStudentUserList() {
     const studentRecords = get(this.roomProperties, 'students', {})
     const students = Object.keys(studentRecords).map((uuid) => ({
@@ -1149,6 +1205,7 @@ export class MiddleRoomStore extends SimpleInterval {
       userName: studentRecords[uuid].userName,
       account: studentRecords[uuid].userName,
       reward: studentRecords[uuid].reward,
+      offline: this.sceneStore.userList.find((user: any) => user.userUuid === uuid) ? false : true
     }))
     return students
   }

@@ -590,6 +590,7 @@ export interface UserGroup {
     userName?: string;
     reward?: number;
     streamUuid?: any;
+    offline?: boolean;
   }>;
   groupProperties?: {
     reward?: number;

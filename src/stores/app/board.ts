@@ -3,7 +3,7 @@ import { UploadManager, PPTProgressListener } from '@/utils/upload-manager';
 import { AppStore } from '@/stores/app';
 import { observable, action, computed, runInAction } from 'mobx'
 import { PPTProgressPhase } from '@/utils/upload-manager'
-import { Room, PPTKind, ViewMode } from 'white-web-sdk'
+import { Room, PPTKind, ViewMode, AnimationMode } from 'white-web-sdk'
 import { BoardClient } from '@/components/netless-board/board-client';
 import { get, isEmpty, omit } from 'lodash';
 import { OSSConfig } from '@/utils/helper';
@@ -218,6 +218,27 @@ export class BoardStore {
 
   get localUserUuid() {
     return this.appStore.userUuid
+  }
+
+  pptAutoFullScreen() {
+    if (this.room && this.online) {
+      const room = this.room
+      const scene = room.state.sceneState.scenes[room.state.sceneState.index];
+      if (scene && scene.ppt) {
+          const width = scene.ppt.width;
+          const height = scene.ppt.height;
+          room.moveCameraToContain({
+              originX: - width / 2,
+              originY: - height / 2,
+              width: width,
+              height: height,
+              animationMode: AnimationMode.Immediately,
+          });
+      }
+      // TODO: scale ppt to fit
+      // room.scalePptToFit("immediately")
+      this.scale = this.room.state.zoomScale
+    }
   }
 
   @action
