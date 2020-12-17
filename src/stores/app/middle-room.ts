@@ -928,16 +928,12 @@ export class MiddleRoomStore extends SimpleInterval {
   // 整组加星
   @action
   async addGroupStar (group: UserGroup) {
-    let properties: any
-    let cause: any 
+    let properties: any = {}
     group.members.forEach(async (stu: any) => {
-      properties = {
-        [`students.${stu.userUuid}.reward`]: stu.reward + 1,
-      }
-      cause = {cmd:"202"} // 整组奖励
-      await this.updateRoomBatchProperties({ properties, cause })
+      properties[`students.${stu.userUuid}.reward`] = stu.reward + 1
     })
-
+    let cause: any = {cmd:"202"} // 整组奖励
+    await this.updateRoomBatchProperties({ properties, cause })
   }
 
   // 删除
