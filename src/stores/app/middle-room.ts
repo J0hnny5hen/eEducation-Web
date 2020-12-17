@@ -880,6 +880,14 @@ export class MiddleRoomStore extends SimpleInterval {
         streams.push(stu)
       })
       await this.batchDeleteStream(streams)
+      // 当前下台的组是最后一组 关闭 pk 状态
+      if(!this.platformState.g1 && !this.platformState.g2) {
+        let cause = {cmd:"101"} 
+        let properties: any = {
+          'groupStates.interactOutGroup': 0, // 组外讨论 包括分组，pk
+        }
+        await this.updateRoomBatchProperties({ properties, cause })
+      }
       return 
     }
     // 台上两组满
