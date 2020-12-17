@@ -15,6 +15,20 @@ export const Board = observer(() => {
 
   const boardRef = useRef<HTMLDivElement | null>(null)
 
+  const onWindowResize = useCallback(() => {
+    if (boardStore.online && boardStore.room && boardStore.room.isWritable) {
+      boardStore.pptAutoFullScreen()
+      boardStore.room && boardStore.room.refreshViewSize()
+    }
+  }, [boardStore.room, boardStore.pptAutoFullScreen])
+
+  useEffect(() => {
+    window.addEventListener('resize', onWindowResize)
+    return () => {
+      window.removeEventListener('resize', onWindowResize)
+    }
+  }, [onWindowResize])
+
 
   const mountToDOM = useCallback((dom: any) => {
     if (dom) {

@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import './replay.scss'
 import Slider from '@material-ui/core/Slider';
-import { useReplayStore } from '@/hooks'
+import { useBoardStore, useReplayStore } from '@/hooks'
 import { useLocation, useParams } from 'react-router-dom'
 import { useMounted } from '../../components/toast'
 import { PlayerPhase } from 'white-web-sdk'
@@ -49,7 +49,23 @@ const useInterval = (fn: CallableFunction, delay: number) => {
 
 export const ReplayController: React.FC<any> = observer(() => {
 
+  const boardStore = useBoardStore()
+
   const location = useLocation()
+
+  const onWindowResize = useCallback(() => {
+    if (boardStore.online && boardStore.room && boardStore.room.isWritable) {
+      boardStore.pptAutoFullScreen()
+      boardStore.room && boardStore.room.refreshViewSize()
+    }
+  }, [boardStore.room, boardStore.pptAutoFullScreen])
+
+  useEffect(() => {
+    window.addEventListener('resize', onWindowResize)
+    return () => {
+      window.removeEventListener('resize', onWindowResize)
+    }
+  }, [onWindowResize])
 
   const {roomUuid} = useParams<{roomUuid: string}>()
 
