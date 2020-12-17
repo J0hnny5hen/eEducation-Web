@@ -45,8 +45,12 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
     if (props.audio) {
       await sceneStore.muteAudio(props.userUuid, false)
     } else {
-      await sceneStore.sendUnmuteApply('audio', props.userUuid)
-      // await sceneStore.unmuteAudio(props.userUuid, false)
+      if(middleRoomStore.userUuid === props.userUuid) {
+        //don't ask if it's myself
+        await sceneStore.unmuteAudio(props.userUuid, false)
+      } else {
+        await sceneStore.sendUnmuteApply('audio', props.userUuid)
+      }
     }
   }
 
@@ -54,8 +58,12 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
     if (props.video) {
       await sceneStore.muteVideo(props.userUuid, false)
     } else {
-      await sceneStore.sendUnmuteApply('video', props.userUuid)
-      // await sceneStore.unmuteVideo(props.userUuid, false)
+      if(middleRoomStore.userUuid === props.userUuid) {
+        //don't ask if it's myself
+        await sceneStore.unmuteVideo(props.userUuid, false)
+      } else {
+        await sceneStore.sendUnmuteApply('video', props.userUuid)
+      }
     }
   }
 
@@ -140,6 +148,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 }) => {
 
   const sceneStore = useSceneStore()
+  const [mouseOver, setMouseOver] = useState(false);
 
   const handleClose = async () => {
     await sceneStore.closeStream(userUuid, local)
@@ -167,6 +176,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }
 
+  const handleMouseOver = () => setMouseOver(true)
+  const handleMouseOut = () => setMouseOver(false)
+
   const extensionStore = useExtensionStore()
 
   // const shake = useMemo(() => {
@@ -174,9 +186,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // }, [extensionStore.coVideoStudentsList])
 
   return (
-    <div className={`${className ? className : 'agora-video-view'}`}>
+    <div onMouseEnter={handleMouseOver} onMouseLeave={handleMouseOut} className={`${className ? className : 'agora-video-view'}`}>
       {showClose ? <div className="icon-close" onClick={handleClose}></div> : null}
-      {showHover ? 
+      {showHover && mouseOver ? 
         <MediaMenu
           userUuid={`${userUuid}`}
           video={video}

@@ -889,7 +889,8 @@ export class MiddleRoomStore extends SimpleInterval {
       ...stream,
       // showStar: true,
       showControls: false,
-      showHover: this.roomInfo.userRole === 'teacher',
+      // show hover if i'm a teacher or it's myself
+      showHover: this.roomInfo.userRole === 'teacher' || (this.roomInfo.userRole === 'student' && stream.userUuid === this.roomInfo.userUuid),
       showMediaBtn: true
     }))
 
