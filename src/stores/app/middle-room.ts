@@ -856,19 +856,29 @@ export class MiddleRoomStore extends SimpleInterval {
   }
 
   @action
-  // 整组上台
+  // 整组上台 / 下台
   async clickPlatform (group:any) {
     let id = group.groupUuid
     let cause = {cmd:"104"} // 开关 pk
-
+    
     // 该组在台上
+    
     if (this.platformState.g1 === id || this.platformState.g2 === id) {
+      let properties: any = {}
       console.log('该组在台上 下台')
       let t = this.platformState.g1 === id? 'g1' : 'g2'
-      let properties: any = {
-        [`interactOutGroups.${t}`]: '',
+      // 当前下台的组是最后一组 关闭 pk 状态
+      if((t === 'g1' && !this.platformState.g2) || (t === 'g2' && !this.platformState.g1)) {
+        properties = {
+          'groupStates.interactOutGroup': 0, // 组外讨论 包括分组，pk
+          [`interactOutGroups.${t}`]: '',
+        }
+      } else {
+        properties = {
+          [`interactOutGroups.${t}`]: '',
+        }
       }
-      // 下台
+      // 下台 or 下台并更新状态
       await this.updateRoomBatchProperties({properties, cause})
       // 删流
       let streams:any = []
@@ -880,14 +890,6 @@ export class MiddleRoomStore extends SimpleInterval {
         streams.push(stu)
       })
       await this.batchDeleteStream(streams)
-      // 当前下台的组是最后一组 关闭 pk 状态
-      if(!this.platformState.g1 && !this.platformState.g2) {
-        let cause = {cmd:"101"} 
-        let properties: any = {
-          'groupStates.interactOutGroup': 0, // 组外讨论 包括分组，pk
-        }
-        await this.updateRoomBatchProperties({ properties, cause })
-      }
       return 
     }
     // 台上两组满
@@ -928,14 +930,14 @@ export class MiddleRoomStore extends SimpleInterval {
   async addGroupStar (group: UserGroup) {
     let properties: any
     let cause: any 
-    group.members.map((stu: any) => {
-      stu.reward = stu.reward + 1
+    group.members.forEach(async (stu: any) => {
       properties = {
-        [`students.${stu.userUuid}.reward`]: stu.reward,
+        [`students.${stu.userUuid}.reward`]: stu.reward + 1,
       }
       cause = {cmd:"202"} // 整组奖励
+      await this.updateRoomBatchProperties({ properties, cause })
     })
-    await this.updateRoomBatchProperties({ properties, cause })
+
   }
 
   // 删除
