@@ -41,8 +41,9 @@ export const MiddleClass = observer(() => {
 
   const {
     roomProperties,
-    userGroups,
+    cardUserGroups,
     roomStudentUserList,
+    onlineStudentList,
     studentUserList,
     studentsList,
     studentTotal
@@ -109,13 +110,13 @@ export const MiddleClass = observer(() => {
     }
   }, [sceneStore, boardStore, studentsList, middleRoomStore])
 
-  const handleMute = async () => {
+  const handleMute = useCallback(async () => {
     if (mutedChat) {
       await sceneStore.unmuteChat()
     } else {
       await sceneStore.muteChat()
     }
-  }
+  }, [mutedChat, sceneStore])
 
   const handleNotice = () => {
     // middleRoomStore.showDialog()
@@ -126,8 +127,8 @@ export const MiddleClass = observer(() => {
       <div className="live-container">
         <div className="platform-room">
           {
-            middleRoomStore.platformState.g1 ?
-              <GroupVideoMarquee mainStream={null} othersStreams={middleRoomStore.platformState.g1Members}/>
+            middleRoomStore.groups[0].studentStreams.length ?
+              <GroupVideoMarquee mainStream={null} othersStreams={middleRoomStore.groups[0].studentStreams}/>
             : null
           }
         </div>
@@ -137,7 +138,7 @@ export const MiddleClass = observer(() => {
           {
             extensionStore.controlGrouping ?
             <MiddleGrouping dataList={roomStudentUserList} 
-            studentTotal={middleRoomStore && middleRoomStore.studentSum}
+            studentTotal={middleRoomStore.studentTotal}
             onSave={ async (groups) => { await middleRoomStore.groupOnSave(groups)}} 
             onRemove={ async () => await middleRoomStore.removeGroup()} />
             : null
@@ -157,8 +158,8 @@ export const MiddleClass = observer(() => {
         </div>
         <div className="platform-room-second">
         {
-          middleRoomStore.platformState.g2 ?
-            <GroupVideoMarquee mainStream={null} othersStreams={middleRoomStore.platformState.g2Members}/>
+          middleRoomStore.groups[1].studentStreams.length ?
+            <GroupVideoMarquee mainStream={null} othersStreams={middleRoomStore.groups[1].studentStreams}/>
           : null
         }
         </div>
@@ -191,7 +192,7 @@ export const MiddleClass = observer(() => {
           </div>
           <div className={`chat-container ${uiStore.activeTab === 'chatroom' ? '' : 'hide'}`}>
             <ChatPanel
-              canChat={true}
+              canChat={sceneStore.roomInfo.userRole === 'teacher'}
               muteControl={sceneStore.muteControl}
               muteChat={sceneStore.mutedChat}
               handleMute={handleMute}
@@ -204,9 +205,9 @@ export const MiddleClass = observer(() => {
           </div>
           <div className={`student-container ${uiStore.activeTab !== 'chatroom' ? '' : 'hide'}`}>
           {
-            userGroups.length ? 
+            cardUserGroups.length ? 
             <div className="group-card-list">
-              { userGroups.map((group, index) => (
+              { cardUserGroups.map((group, index) => (
                   <MiddleGroupCard key={index} 
                     group={group}
                     isTeacher={middleRoomStore.roomInfo.userRole === 'teacher'}
@@ -221,7 +222,7 @@ export const MiddleClass = observer(() => {
             :
             <StudentList
               userRole={userRole}
-              students={roomStudentUserList}
+              students={onlineStudentList}
               grantUsers={grantUsers}
               handleClick={handleClick}
               isMiddleClassRoom={true}

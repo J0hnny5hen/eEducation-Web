@@ -1,9 +1,10 @@
 
 
-// .offline {
-//   cursor:not-allowed;
-//   background: #00000033;
-// }
+.offline {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+}
+
 .no-hover {
   pointer-events: none;
 }

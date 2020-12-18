@@ -128,7 +128,7 @@ function GroupingBoard(props: MiddleGroupProps) {
                                     snapshot.isDragging,
                                     provided.draggableProps.style
                                 )}>
-                                <div className="stu-identity">
+                                <div className={`stu-identity ${item.offline ? 'offline' : ''}`}>
                                   <div className="stu-head"></div>
                                   <div className="stu-name">{item.userName}</div>
                                 </div>
@@ -196,7 +196,7 @@ export const MiddleGroupCard: React.FC<MiddleGroupCardProps> = observer(
       <hr />
       <div className="group-body">
       {group.members.map((item: any, idx: number) => (
-        <div className="group-stu" key={idx}>
+        <div className={`group-stu ${item.offline ? 'offline' : ''}`} key={idx}>
           <div className="stu-head"></div>
           <span className="stu-name">{item.userName}</span>
           <div className="star-box">
@@ -240,7 +240,6 @@ export const MiddleGrouping: React.FC<MiddleGroupingProps> = ({onSave, dataList,
   const [controlSpread, setControlSpread] = useState<number>(2)
   const [addition, setAddition] = useState<boolean>(true)
 
-  // ***
   const [maximum, setMaximum] = React.useState<number>(2)
   
   const [groupType, setGroupType] = React.useState<number>(0)

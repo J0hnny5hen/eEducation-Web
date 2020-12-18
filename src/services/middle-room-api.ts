@@ -140,14 +140,14 @@ export class MiddleRoomApi {
   // 举手邀请开启
   async handInvitationStart(action: number, toUserUuid: string) {
     let res = await this.fetch({
-      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/users/${toUserUuid}/process/${this.room.uuid}`,
+      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v2/rooms/${this.room.uuid}/users/${toUserUuid}/process/${this.room.uuid}`,
       method: 'POST',
       data: {
         fromUserUuid: this.me.uuid,
-        // fromUser: this.me,
-        // fromRoom: this.room,
+        action: action,
+        // processUuid: this.room.uuid,
         payload: {
-          action: action,
+          // action: action,
           fromUser: this.me,
           fromRoom: this.room,
         },
@@ -160,13 +160,13 @@ export class MiddleRoomApi {
   // 举手邀请结束
   async handInvitationEnd(action: number, toUserUuid: string) {
     let res = await this.fetch({
-      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/users/${toUserUuid}/process/${this.room.uuid}`,
+      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v2/rooms/${this.room.uuid}/users/${toUserUuid}/process/${this.room.uuid}`,
       method: 'DELETE',
       data: {
         fromUserUuid: this.me.uuid,
         action: action,
         payload: {
-          action,
+          // action,
           fromUser: this.me,
           fromRoom: this.room,
         },

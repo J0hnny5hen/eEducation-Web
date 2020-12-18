@@ -153,7 +153,8 @@ export interface EduClassroomManagerInit {
 export enum EduSceneType {
   Scene1v1 = 0,
   SceneSmall = 1,
-  SceneLarge = 2
+  SceneLarge = 2,
+  SceneMedium = 4
 }
 
 export interface EduClassroomParams {
@@ -590,6 +591,7 @@ export interface UserGroup {
     userName?: string;
     reward?: number;
     streamUuid?: any;
+    offline?: boolean;
   }>;
   groupProperties?: {
     reward?: number;

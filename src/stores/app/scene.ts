@@ -1266,6 +1266,14 @@ export class SceneStore extends SimpleInterval {
   }
 
   @computed
+  get canChat(): boolean {
+    if (this.roomInfo.userRole === 'teacher') {
+      return true
+    }
+    return !!this.isMuted
+  }
+
+  @computed
   get mutedChat(): boolean {
     if (this.isMuted !== undefined) {
       return this.isMuted
@@ -1284,7 +1292,8 @@ export class SceneStore extends SimpleInterval {
   async muteChat() {
     const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
     const roles = ['broadcaster']
-    if (sceneType === EduSceneType.SceneLarge) {
+    if (sceneType === EduSceneType.SceneLarge 
+      || sceneType === EduSceneType.SceneMedium) {
       roles.push('audience')
     }
     await this.roomManager?.userService.muteStudentChatByRoles(roles)
@@ -1295,7 +1304,8 @@ export class SceneStore extends SimpleInterval {
   async unmuteChat() {
     const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
     const roles = ['broadcaster']
-    if (sceneType === EduSceneType.SceneLarge) {
+    if (sceneType === EduSceneType.SceneLarge
+      || sceneType === EduSceneType.SceneMedium) {
       roles.push('audience')
     }
     await this.roomManager?.userService.unmuteStudentChatByRoles(roles)

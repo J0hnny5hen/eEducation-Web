@@ -30,11 +30,7 @@ const StudentApplyCard = observer((props: StudentApplyCardProps) => {
   }
 
   return (
-    <ListItem
-      // onClick={async (evt: any) => {
-      //   await extensionStore.acceptApply(props.userUuid, props.streamUuid)
-      // }}
-    >
+    <ListItem>
       <div className="user-item">{props.userName}</div>
       <div className={`icons-lecture-board-inactive ${shake ? "infinity-shake": ""}`} onClick={handleClick} />
       <div style={{width: "25px", cursor: "pointer", marginRight: "5px"}}>
