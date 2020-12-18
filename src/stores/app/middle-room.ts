@@ -932,7 +932,10 @@ export class MiddleRoomStore extends SimpleInterval {
     group.members.forEach(async (stu: any) => {
       properties[`students.${stu.userUuid}.reward`] = stu.reward + 1
     })
-    let cause: any = {cmd:"202"} // 整组奖励
+    let cause: any = {
+      groupUuid: group.groupUuid,
+      cmd:"202"
+    } // 整组奖励
     await this.updateRoomBatchProperties({ properties, cause })
   }
 
@@ -1035,6 +1038,7 @@ export class MiddleRoomStore extends SimpleInterval {
           [`students.${userUuid}.reward`]: reward+1,
         },
         cause: {
+          userUuid: userUuid,
           cmd: `${MiddleRoomPropertiesChangeCause.studentRewardStateChanged}`
         }
       }
