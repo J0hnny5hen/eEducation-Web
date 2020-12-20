@@ -155,8 +155,22 @@ export class EduClassroomDataController {
       if (buffer) {
         if (this._curSeqId) {
           if (+seqId <= +this._curSeqId) {
-            delete this._bufferMap[`${seqId}`]
-            continue;
+            // if seqid equals curSeqId and cmd is initState, it's meaningful to do a full overwrite
+            let {cmd} = buffer
+            if(+seqId === +this._curSeqId && cmd === EduChannelMessageCmdType.initState) {
+              taskBuffer.push({
+                seqId: +seqId,
+                ...buffer
+              })
+              this.setCurrentSeqId(+seqId)
+              // this._curSeqId = +seqId
+              delete this._bufferMap[`${seqId}`]
+              EduLogger.info("[seqId] snapshot overwrite", seqId, this._curSeqId)
+            } else {
+              // if not initState cmd, ignore
+              delete this._bufferMap[`${seqId}`]
+              continue;
+            }
           } else {
             if (+seqId === this._curSeqId+1) {
               taskBuffer.push({

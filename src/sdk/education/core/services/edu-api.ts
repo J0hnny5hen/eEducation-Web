@@ -153,6 +153,14 @@ export class AgoraEduApi {
     this.latestTime = t
   }
 
+  wait (time: number) {
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        resolve()
+      }, time)
+    })
+  }
+
   async fetch (params: AgoraFetchParams) {
     const {
       method,
