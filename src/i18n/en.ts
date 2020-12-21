@@ -7,6 +7,14 @@ const en = {
     "hands_up": "CoVideo",
     "hands_up_timeout": "Hand up end, time over max wait seconds",
   },
+  "invitation": {
+    "apply_success": "Apply Success",
+    "stop_success": "Stop Success",
+    "reject_success": "Reject Success",
+    "reject_failed": "Reject Failed",
+    "apply_failed": "Apply Failed",
+    "stop_failed": "Stop Failed"
+  },
   "switch": {
     "enable_auto_hands_up": "HandsUp CoVideo",
     "enable_hands_up": "HandsUp",
@@ -259,12 +267,14 @@ const en = {
     'student_hands_up': `"{reason}" hands up'`,
     'student_hands_down': `"{reason}" hands down`,
     'the_teacher_accepted': `Teacher accepted your apply`,
+    'the_teacher_rejected': 'Teacher rejected your apply',
     'end_covideo_by_teacher': 'CoVideo end by teacher',
     'end_covideo_by_self': 'CoVideo end by you',
   },
   'course_recording': 'course recording',
   'build_version': `build version: ${build_version}`,
   'cancel_confirm': 'Are you sure to ignore？',
+  'reject_confirm': 'Are you sure to reject?',
   'allow_confirm': 'Are you sure to accept',
 }
 

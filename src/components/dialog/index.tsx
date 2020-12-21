@@ -140,10 +140,12 @@ export const RoomNavigationDialog = observer((props: any) => {
       uiStore.unblock()
       history.replace('/')
     }
+    // 接受学生举手
     else if (type === 'allowConfirm') {
       await extensionStore.acceptApply(option.userUuid, option.streamUuid)
     }
-    else if (type === 'cancelConfirm') {
+    // 拒绝
+    else if (type === 'rejectConfirm') {
       extensionStore.removeApplyUserBy(option.userUuid)
     }
     else if (type === 'unmuteApply') {

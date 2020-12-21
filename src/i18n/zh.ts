@@ -10,6 +10,8 @@ const zhCN: any = {
   "invitation": {
     "apply_success": "发起举手成功",
     "stop_success": "取消举手成功",
+    "reject_success": "拒绝举手成功",
+    "reject_failed": "拒绝举手失败",
     "apply_failed": "举手发起失败",
     "stop_failed": "取消举手失败"
   },
@@ -264,12 +266,14 @@ const zhCN: any = {
     'student_hands_down': `学生: "{reason}"取消了举手`,
     'student_hands_up': `学生："{reason}"举手了'`,
     'the_teacher_accepted': `老师同意了举手申请`,
+    'the_teacher_rejected': '老师拒绝了举手申请',
     'end_covideo_by_teacher': '老师关闭了你的连麦',
     'end_covideo_by_self': '你关闭了自己的连麦',
   },
   'course_recording': '录制回放',
   'build_version': `构建版本: ${build_version}`,
   'cancel_confirm': '确定忽略吗？',
+  'reject_confirm': '确定拒绝吗？',
   'allow_confirm': '确定允许吗？',
 }
 

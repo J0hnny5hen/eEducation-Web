@@ -220,6 +220,9 @@ export class MiddleRoomStore extends SimpleInterval {
   messages: any[] = []
 
   @observable
+  isReject: boolean = false
+
+  @observable
   userGroups: UserGroup[] = []
 
   @observable
@@ -253,9 +256,15 @@ export class MiddleRoomStore extends SimpleInterval {
           text = t('middle_room.student_hands_down', {reason: userName})
           break;
         }
-        case InvitationEnum.Accept: 
+        case InvitationEnum.Reject: {
+          text = t('middle_room.the_teacher_rejected')
+          break;
+        }
+        case InvitationEnum.Accept: {
           text = t('middle_room.the_teacher_accepted')
           break;
+        }
+        
       }
       this.notice = {
         reason: text,
@@ -263,6 +272,10 @@ export class MiddleRoomStore extends SimpleInterval {
       }
       this.appStore.uiStore.addToast(this.notice.reason)
   
+      if (action === InvitationEnum.Reject) {
+        this.appStore.extensionStore.handsUp = false
+        this.isReject = true
+      }
       if (action === InvitationEnum.Apply) {
         const userExists = this.extensionStore.applyUsers.find((user) => user.userUuid === userUuid)
         const user = this.roomManager?.data.userList.find(it => it.user.userUuid === userUuid)
@@ -669,8 +682,7 @@ export class MiddleRoomStore extends SimpleInterval {
           this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
-          console.log('get groups***', groups)
-          console.log('get students***', students)
+          
           let userGroups: UserGroup[] = []
           if (groups) {
             Object.keys(groups).forEach(groupUuid => {
@@ -682,7 +694,6 @@ export class MiddleRoomStore extends SimpleInterval {
               }
               group.members.forEach((stuUuid: string) => {
                 let info = students[stuUuid]
-                console.log('***info.reward', info)
                 userGroup.members.push({
                   userUuid: stuUuid,
                   userName: info.userName,
@@ -748,7 +759,6 @@ export class MiddleRoomStore extends SimpleInterval {
             streamUuid: streamUuid,
           }
           let cause = { cmd: "401" }
-          console.log('****propertiesStu', properties)
           await this.updateRoomBatchProperties({ properties, cause })
         }
       }

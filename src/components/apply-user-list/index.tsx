@@ -52,11 +52,11 @@ const StudentApplyCard = observer((props: StudentApplyCardProps) => {
       <div style={{width: "25px", cursor: "pointer"}}>
         <Close onClick={() => {
           uiStore.showDialog({
-            type: 'cancelConfirm',
+            type: 'rejectConfirm',
             option: {
               userUuid: props.userUuid
             },
-            message: t('cancel_confirm')
+            message: t('reject_confirm')
           })
         }}/>
       </div>

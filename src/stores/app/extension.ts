@@ -252,6 +252,21 @@ export class ExtensionStore {
   }
 
   @action
+  async rejectInvitationApply (toUserUuid: string) {
+    try {
+      await this.middleRoomApi.handInvitationEnd(
+        InvitationEnum.Reject,
+        toUserUuid
+      )
+      this.handsUp = false
+      this.appStore.uiStore.addToast(t(`invitation.reject_success`))
+    } catch (err) {
+      console.warn(err)
+      this.appStore.uiStore.addToast(t(`invitation.reject_failed`))
+    }
+  }
+
+  @action
   async answerAcceptInvitationApply (userUuid: string, streamUuid: string) {
     try {
       await this.middleRoomApi.handInvitationStart(
@@ -381,9 +396,10 @@ export class ExtensionStore {
   }
 
   @action
-  removeApplyUserBy(userUuid: string) {
+  async removeApplyUserBy (userUuid: string) {
     const idx = this.applyUsers.findIndex((user) => user.userUuid === userUuid)
     this.applyUsers.splice(idx, 1)
     // this.applyUsers = this.applyUsers.filter((user) => user.userName !== userUuid)
+    await this.rejectInvitationApply(userUuid)
   }
 }
