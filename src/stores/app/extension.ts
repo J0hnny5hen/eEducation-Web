@@ -205,7 +205,7 @@ export class ExtensionStore {
   }
 
   @computed
-  get handsUp(): boolean {
+  get coVideo(): boolean {
     if (this.appStore.sceneStore._cameraEduStream) return true
     return false
   }
@@ -231,6 +231,7 @@ export class ExtensionStore {
           userInfo: {} as EduUser
         })
       }
+      this.appStore.middleRoomStore.didHandsUp = true
       this.appStore.uiStore.addToast(t(`invitation.apply_success`))
     } catch (err) {
       console.warn(err)
@@ -249,6 +250,7 @@ export class ExtensionStore {
       setInterval(this.timer)
       this.timer = undefined
       this.appStore.uiStore.addToast(t(`invitation.stop_success`))
+      this.appStore.middleRoomStore.didHandsUp = false
     } catch (err) {
       console.warn(err)
       this.appStore.uiStore.addToast(t(`invitation.stop_failed`))
@@ -306,7 +308,7 @@ export class ExtensionStore {
           this.interval = undefined
         }
         this.inTick = false
-        if (!this.handsUp) {
+        if (!this.appStore.middleRoomStore.didHandsUp) {
           await this.startInvitationApply()
         } else {
           await this.stopInvitationApply()

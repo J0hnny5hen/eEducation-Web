@@ -190,6 +190,7 @@ export class MiddleRoomStore extends SimpleInterval {
 
   @action
   reset() {
+    this.didHandsUp = false
     this.localCoVideoStream = null
     this.removeDialogs()
     this.removeAllIntervals()
@@ -224,7 +225,7 @@ export class MiddleRoomStore extends SimpleInterval {
   isReject: boolean = false
 
   @observable
-  disable_handsUp: boolean = false
+  didHandsUp: boolean = false
 
   @observable
   userGroups: UserGroup[] = []
@@ -277,11 +278,12 @@ export class MiddleRoomStore extends SimpleInterval {
       this.appStore.uiStore.addToast(this.notice.reason)
   
       if (action === InvitationEnum.Reject) {
-        // this.appStore.extensionStore.handsUp = false
+        this.didHandsUp = false
         this.isReject = true
       }
       if (action === InvitationEnum.Accept) {
-        this.disable_handsUp = true
+        // this.disable_handsUp = true
+        this.didHandsUp = false
       }
       if (action === InvitationEnum.Apply) {
         const userExists = this.extensionStore.applyUsers.find((user) => user.userUuid === userUuid)
@@ -300,7 +302,7 @@ export class MiddleRoomStore extends SimpleInterval {
         const applyUsers = this.extensionStore.applyUsers.filter((it) => it.userUuid !== userUuid)
         this.extensionStore.applyUsers = applyUsers
       }
-      if (action === PeerInviteEnum.teacherAccept 
+      if (action === InvitationEnum.Accept
         && this.isStudent()) {
         try {
           await this.sceneStore.prepareCamera()
@@ -953,7 +955,7 @@ export class MiddleRoomStore extends SimpleInterval {
   async sendClose(userUuid: string) {
     const isLocal = this.roomInfo.userUuid === userUuid
     await this.sceneStore.closeStream(userUuid, isLocal)
-    this.disable_handsUp = false
+    this.didHandsUp = false
   }
 
   @action

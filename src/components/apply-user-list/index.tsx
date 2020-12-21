@@ -1,4 +1,4 @@
-import React, {Fragment, useCallback, useEffect, useRef, useState} from 'react'
+import React, {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import { useExtensionStore, useMiddleRoomStore, useRoomStore, useUIStore } from "@/hooks"
 import { observer } from 'mobx-react'
 import {CustomIcon} from '@/components/icon'
@@ -105,6 +105,20 @@ export const ApplyUserList = observer(() => {
     extensionStore.stopTick()
   }, [extensionStore.inTick])
 
+  const activeClassName = useMemo(() => {
+    // when already co video
+    if (extensionStore.coVideo) {
+      return "disable_hands_up"
+    } else {
+      // not co video
+      // when student raised handsUp
+      if (middleRoomStore.didHandsUp) {
+        return  "inactive_hands_up"
+      }
+      return "active_hands_up"
+    }
+  }, [extensionStore.coVideo, middleRoomStore.didHandsUp])
+
   return (
     <Fragment>
     {extensionStore.showStudentHandsTool  ?
@@ -114,7 +128,7 @@ export const ApplyUserList = observer(() => {
         onMouseOut={onMouseOut}
       >
         <div className={`student-apply 
-        ${extensionStore.handsUp ? "inactive_hands_up" : "active_hands_up"}
+        ${activeClassName}
         ${extensionStore.inTick ? 'bg-white' : ''}`}
           onMouseDown={onMouseDown}
           onMouseUp={onMouseUp}
