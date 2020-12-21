@@ -201,8 +201,11 @@ export class ExtensionStore {
     return this.appStore.sceneStore.teacherUuid
   }
 
-  @observable
-  handsUp: boolean = false
+  @computed
+  get handsUp(): boolean {
+    if (this.appStore.sceneStore._cameraEduStream) return true
+    return false
+  }
 
   @action
   async startInvitationApply () {
@@ -225,7 +228,6 @@ export class ExtensionStore {
           userInfo: {} as EduUser
         })
       }
-      this.handsUp = true
       this.appStore.uiStore.addToast(t(`invitation.apply_success`))
     } catch (err) {
       console.warn(err)
@@ -241,7 +243,6 @@ export class ExtensionStore {
         InvitationEnum.Cancel,
         teacherUuid
       )
-      this.handsUp = false
       setInterval(this.timer)
       this.timer = undefined
       this.appStore.uiStore.addToast(t(`invitation.stop_success`))
@@ -258,7 +259,6 @@ export class ExtensionStore {
         InvitationEnum.Reject,
         toUserUuid
       )
-      this.handsUp = false
       this.appStore.uiStore.addToast(t(`invitation.reject_success`))
     } catch (err) {
       console.warn(err)
@@ -369,7 +369,6 @@ export class ExtensionStore {
     BizLogger.info('hands up over max wait reset apply user list')
     this.applyUsers = []
     this.visibleUserList = false
-    this.handsUp = false
   }
 
   @action

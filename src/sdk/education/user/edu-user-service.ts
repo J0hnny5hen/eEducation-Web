@@ -6,6 +6,9 @@ import { EventEmitter } from 'events';
 import { EduStreamData, StreamType, DeleteStreamType, EduVideoConfig, EduRoleType, EduVideoSourceType, EduAudioSourceType, EduCourseState, EduRenderConfig, EduStream, EduUser, EduSubscribeOptions, EduStreamConfig } from '../interfaces/index.d';
 import { AgoraEduApi } from '../core/services/edu-api';
 
+export enum UserServiceErrorCode {
+  UserNotOnline = 20410200
+}
 export interface EduModelViewOption {
   dom: HTMLElement
   stream: EduStream

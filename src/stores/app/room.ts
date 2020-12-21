@@ -8,7 +8,7 @@ import { EduAudioSourceType, EduTextMessage, EduSceneType } from './../../sdk/ed
 import { RemoteUserRenderer } from './../../sdk/education/core/media-service/renderer/index';
 import { RoomApi } from './../../services/room-api';
 import { EduClassroomManager } from '@/sdk/education/room/edu-classroom-manager';
-import { PeerInviteEnum } from '@/sdk/education/user/edu-user-service';
+import { PeerInviteEnum, UserServiceErrorCode } from '@/sdk/education/user/edu-user-service';
 import { LocalUserRenderer, UserRenderer } from '../../sdk/education/core/media-service/renderer/index';
 import { AppStore } from '@/stores/app/index';
 import { AgoraWebRtcWrapper } from '../../sdk/education/core/media-service/web/index';

@@ -190,6 +190,7 @@ export class MiddleRoomStore extends SimpleInterval {
 
   @action
   reset() {
+    this.localCoVideoStream = null
     this.removeDialogs()
     this.removeAllIntervals()
     this.appStore.mediaStore.resetRoomState()
@@ -273,7 +274,7 @@ export class MiddleRoomStore extends SimpleInterval {
       this.appStore.uiStore.addToast(this.notice.reason)
   
       if (action === InvitationEnum.Reject) {
-        this.appStore.extensionStore.handsUp = false
+        // this.appStore.extensionStore.handsUp = false
         this.isReject = true
       }
       if (action === InvitationEnum.Apply) {
@@ -343,6 +344,9 @@ export class MiddleRoomStore extends SimpleInterval {
 
   @observable
   intervals = new Map<string, any>()
+
+  @observable
+  localCoVideoStream: any = null
 
   showDialog(userName: string, userUuid: any) {
     const isExists = this.appStore
