@@ -223,6 +223,9 @@ export class MiddleRoomStore extends SimpleInterval {
   isReject: boolean = false
 
   @observable
+  disable_handsUp: boolean = false
+
+  @observable
   userGroups: UserGroup[] = []
 
   @observable
@@ -275,6 +278,9 @@ export class MiddleRoomStore extends SimpleInterval {
       if (action === InvitationEnum.Reject) {
         this.appStore.extensionStore.handsUp = false
         this.isReject = true
+      }
+      if (action === InvitationEnum.Accept) {
+        this.disable_handsUp = true
       }
       if (action === InvitationEnum.Apply) {
         const userExists = this.extensionStore.applyUsers.find((user) => user.userUuid === userUuid)
@@ -943,6 +949,7 @@ export class MiddleRoomStore extends SimpleInterval {
   async sendClose(userUuid: string) {
     const isLocal = this.roomInfo.userUuid === userUuid
     await this.sceneStore.closeStream(userUuid, isLocal)
+    this.disable_handsUp = false
   }
 
   @action

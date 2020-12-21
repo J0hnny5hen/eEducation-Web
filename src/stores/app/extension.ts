@@ -151,6 +151,9 @@ export class ExtensionStore {
 
   async acceptApply(userUuid: string, streamUuid: string) {
     const exists = this.sceneStore.streamList.find((stream) => stream.streamUuid === streamUuid)
+    const idx = this.applyUsers.findIndex((user) => user.userUuid === userUuid)
+    this.applyUsers.splice(idx, 1)
+    this.applyUsers = this.applyUsers.filter((user) => user.userName !== userUuid)
     if (exists) {
       return
     }
@@ -399,7 +402,8 @@ export class ExtensionStore {
   async removeApplyUserBy (userUuid: string) {
     const idx = this.applyUsers.findIndex((user) => user.userUuid === userUuid)
     this.applyUsers.splice(idx, 1)
-    // this.applyUsers = this.applyUsers.filter((user) => user.userName !== userUuid)
+    this.applyUsers = this.applyUsers.filter((user) => user.userName !== userUuid)
+    // 清空举手列表
     await this.rejectInvitationApply(userUuid)
   }
 }
