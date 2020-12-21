@@ -114,7 +114,7 @@ export const ApplyUserList = observer(() => {
         onMouseOut={onMouseOut}
       >
         <div className={`student-apply 
-        ${middleRoomStore.disable_handsUp ? "disable_hands_up" : extensionStore.handsUp ? "inactive_hands_up" : "active_hands_up"}
+        ${extensionStore.handsUp ? "inactive_hands_up" : "active_hands_up"}
         ${extensionStore.inTick ? 'bg-white' : ''}`}
           onMouseDown={onMouseDown}
           onMouseUp={onMouseUp}
