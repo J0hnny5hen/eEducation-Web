@@ -145,6 +145,7 @@ export class MiddleRoomApi {
       method: 'POST',
       data: {
         fromUserUuid: this.me.uuid,
+        waitAck: false,
         // fromUser: this.me,
         // fromRoom: this.room,
         payload: {
@@ -165,7 +166,8 @@ export class MiddleRoomApi {
       method: 'DELETE',
       data: {
         fromUserUuid: this.me.uuid,
-        action: action,
+        waitAck: false,
+        // action: action,
         payload: {
           action,
           fromUser: this.me,
