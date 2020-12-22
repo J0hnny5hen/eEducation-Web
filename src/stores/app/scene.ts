@@ -27,6 +27,10 @@ const delay = 2000
 
 const ms = 500
 
+export enum ClassStateEnum {
+  started = 1
+}
+
 export enum UnmuteMediaEnum {
   audio = 0,
   video = 1
@@ -1345,19 +1349,15 @@ export class SceneStore extends SimpleInterval {
 
   @computed
   get mutedChat(): boolean {
-    if (this.classState !== undefined) {
-      return this.classState !== 1
+    // when class is not started, mute chat
+    if (this.classState !== ClassStateEnum.started) {
+      return true
     }
-    if (this.isMuted !== undefined) {
-      return this.isMuted
+    // when isMuted not true, mute chat
+    if (this.isMuted === true) {
+      return true
     }
-    const classroom = this.roomManager?.getClassroomInfo()
-    if (classroom && classroom.roomStatus) {
-      const isAllowed: any = !classroom.roomStatus.isStudentChatAllowed
-      const courseStarted: any = classroom.roomStatus.courseState === 1
-      return !!(isAllowed | courseStarted)
-    }
-    return true
+    return false
   }
 
   @observable
@@ -1367,7 +1367,7 @@ export class SceneStore extends SimpleInterval {
   async muteChat() {
     const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
     const roles = ['broadcaster']
-    if (sceneType === EduSceneType.SceneLarge) {
+    if (sceneType === EduSceneType.SceneLarge || sceneType === EduSceneType.SceneMedium) {
       roles.push('audience')
     }
     await this.roomManager?.userService.muteStudentChatByRoles(roles)
@@ -1378,7 +1378,7 @@ export class SceneStore extends SimpleInterval {
   async unmuteChat() {
     const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
     const roles = ['broadcaster']
-    if (sceneType === EduSceneType.SceneLarge) {
+    if (sceneType === EduSceneType.SceneLarge || sceneType === EduSceneType.SceneMedium) {
       roles.push('audience')
     }
     await this.roomManager?.userService.unmuteStudentChatByRoles(roles)

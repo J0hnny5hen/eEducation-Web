@@ -786,13 +786,14 @@ export class MiddleRoomStore extends SimpleInterval {
       const mainStream = roomManager.data.streamMap['main']
   
       this.sceneStore.classState = roomInfo.roomStatus.courseState
+      this.sceneStore.isMuted = !!roomInfo.roomStatus.isStudentChatAllowed ? false : true
 
       if (this.sceneStore.classState === 1) {
         this.addInterval('timer', () => {
           this.appStore.updateTime(+get(roomInfo, 'roomStatus.startTime', 0))
         }, ms)
       }
-      this.sceneStore.isMuted = !roomInfo.roomStatus.isStudentChatAllowed
+      // this.sceneStore.isMuted = !roomInfo.roomStatus.isStudentChatAllowed
 
       if (this.roomInfo.userRole === 'teacher') {
         await this.appStore.extensionStore.updateHandUpState(true, false)
