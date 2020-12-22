@@ -41,6 +41,9 @@ export class BoardClient extends EventEmitter {
         reportLevelMask: "debug",
         printLevelMask: "debug",
       }
+      // onWhiteSetupFailed: e => {
+      //   throw e
+      // }
     })
     this.disconnected = true
   }

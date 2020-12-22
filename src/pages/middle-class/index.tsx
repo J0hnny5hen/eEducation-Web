@@ -71,7 +71,7 @@ const RoomController = observer(({children}: any) => {
       
     }).catch((err) => {
       BizLogger.warn(err.msg)
-      uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
+      uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg) || err.message}`)
     })
   }, [])
   

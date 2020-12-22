@@ -205,7 +205,7 @@ export const BreakoutRoomController = observer(({ children }: any) => {
         uiStore.addToast(t('toast.successfully_joined_the_room'))
       }).catch((err) => {
         BizLogger.warn(err.msg)
-        uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
+        uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg) || err.message}`)
       })
     }
     if (course_name) {
@@ -213,7 +213,7 @@ export const BreakoutRoomController = observer(({ children }: any) => {
         uiStore.addToast(t('toast.successfully_joined_the_room'))
       }).catch((err) => {
         BizLogger.warn(err.msg)
-        uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
+        uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg) || err.message}`)
       })
     }
 
